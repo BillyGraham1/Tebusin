@@ -1,912 +1,1525 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>FinStore Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Sora', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            navy: {
-              950: '#060B18',
-              900: '#0A1128',
-              800: '#0F1A3D',
-              700: '#152350',
-              600: '#1C2E66',
-            },
-            slate: {
-              750: '#2A3547',
-            }
-          }
-        }
-      }
-    }
-  </script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>SacBag</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
-    :root {
-      --navy-950: #060B18;
-      --navy-900: #0A1128;
-      --navy-800: #0F1A3D;
-      --navy-700: #152350;
-      --primary: #2563EB;
-      --primary-light: #3B82F6;
-      --emerald: #10B981;
-      --emerald-light: #34D399;
-      --rose: #F43F5E;
-      --rose-light: #FB7185;
-      --amber: #F59E0B;
-      --card-bg: rgba(15, 26, 61, 0.85);
-      --glass: rgba(255, 255, 255, 0.04);
-      --border: rgba(255, 255, 255, 0.07);
-    }
-
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Sora', sans-serif;
-      background-color: var(--navy-950);
-      color: #E2E8F0;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 0; height: 0; }
-
-    /* Grain overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.4;
-    }
-
-    /* Radial glow backgrounds */
-    .glow-blue {
-      position: fixed;
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);
-      top: -100px; left: -100px;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .glow-emerald {
-      position: fixed;
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(16,185,129,0.10) 0%, transparent 70%);
-      top: 200px; right: -80px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Cards */
-    .glass-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05) inset;
-    }
-
-    /* Financial summary cards */
-    .fin-card {
-      min-width: 200px;
-      background: linear-gradient(145deg, rgba(22, 35, 80, 0.9) 0%, rgba(10, 17, 40, 0.95) 100%);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 18px;
+    #root {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100vh;
+      background: #f8f9fa;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      flex-shrink: 0;
-    }
-    .fin-card:active { transform: scale(0.97); }
-    .fin-card::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
     }
 
-    .fin-card.revenue::before {
-      content: '';
-      position: absolute;
-      bottom: -30px; right: -30px;
-      width: 120px; height: 120px;
-      background: radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .fin-card.expense::before {
-      content: '';
-      position: absolute;
-      bottom: -30px; right: -30px;
-      width: 120px; height: 120px;
-      background: radial-gradient(circle, rgba(244,63,94,0.15) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .fin-card.profit::before {
-      content: '';
-      position: absolute;
-      bottom: -30px; right: -30px;
-      width: 120px; height: 120px;
-      background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-
-    /* Donut chart */
-    .donut-chart {
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      background: conic-gradient(
-        #10B981 0deg 162deg,
-        #3B82F6 162deg 288deg,
-        #8B5CF6 288deg 360deg
-      );
-      position: relative;
-      box-shadow: 0 0 30px rgba(16,185,129,0.2);
-    }
-    .donut-hole {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 78px; height: 78px;
-      background: var(--navy-900);
-      border-radius: 50%;
+    /* ===== GLOBAL ===== */
+    .screen {
+      width: 100%;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      background: #f8f9fa;
+    }
+
+    /* ===== SPLASH ===== */
+    .splash {
+      background: linear-gradient(145deg, #2d6a4f, #40916c);
       justify-content: center;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+      align-items: center;
+      gap: 16px;
     }
 
-    /* Progress bars */
-    .progress-track {
-      height: 6px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 99px;
-      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    .splash-logo {
+      font-size: 64px;
     }
 
-    /* Quick action buttons */
-    .action-btn {
-      flex: 1;
+    .splash-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: 1px;
+    }
+
+    .splash-tagline {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      text-align: center;
+      padding: 0 32px;
+    }
+
+    .splash-btn {
+      margin-top: 32px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 16px 8px;
-      border-radius: 18px;
+      gap: 12px;
+      width: 100%;
+      padding: 0 32px;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #2d6a4f;
       border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
-      transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
-      position: relative;
-      overflow: hidden;
-      font-family: 'Sora', sans-serif;
+      transition: transform 0.1s, opacity 0.2s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     }
-    .action-btn::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+
+    .btn-primary:active { transform: scale(0.97); opacity: 0.9; }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s;
     }
-    .action-btn:active {
-      transform: scale(0.93);
-      filter: brightness(0.88);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* ===== HEADER ===== */
+    .header {
+      padding: 52px 20px 16px;
+      background: white;
+      box-shadow: 0 1px 0 #e9ecef;
     }
-    .action-btn .icon-wrap {
-      width: 44px; height: 44px;
-      border-radius: 12px;
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1b4332;
+    }
+
+    .header-sub {
+      font-size: 13px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #40916c, #2d6a4f);
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 18px;
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(8px);
     }
 
-    .btn-record {
-      background: linear-gradient(145deg, #2563EB, #1D4ED8);
-      box-shadow: 0 8px 24px rgba(37,99,235,0.4), 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .btn-quick {
-      background: linear-gradient(145deg, #059669, #047857);
-      box-shadow: 0 8px 24px rgba(5,150,105,0.35), 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .btn-expense {
-      background: linear-gradient(145deg, #E11D48, #BE123C);
-      box-shadow: 0 8px 24px rgba(225,29,72,0.35), 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    /* Activity items */
-    .activity-item {
+    /* ===== CUSTOMER HOME ===== */
+    .search-bar {
+      margin: 16px 20px;
+      background: white;
+      border-radius: 14px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      transition: background 0.15s;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .activity-item:last-child { border-bottom: none; }
-    .activity-item:active { background: rgba(255,255,255,0.02); }
 
-    .activity-icon {
-      width: 44px; height: 44px;
-      border-radius: 14px;
+    .search-bar input {
+      border: none;
+      outline: none;
+      font-size: 14px;
+      color: #495057;
+      width: 100%;
+      background: transparent;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #212529;
+      padding: 0 20px;
+      margin-bottom: 12px;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tag-row::-webkit-scrollbar { display: none; }
+
+    .tag {
+      background: white;
+      border: 1.5px solid #dee2e6;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #495057;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tag.active {
+      background: #2d6a4f;
+      border-color: #2d6a4f;
+      color: white;
+    }
+
+    .store-list {
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 100px;
+    }
+
+    .store-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .store-card:active { transform: scale(0.98); }
+
+    .store-card-img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
+      font-size: 52px;
     }
 
-    /* Bottom nav */
+    .store-card-body {
+      padding: 14px;
+    }
+
+    .store-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .store-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .store-category {
+      font-size: 11px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+
+    .badge-stock {
+      background: #d8f3dc;
+      color: #1b4332;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .store-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .price-range {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .price-original {
+      font-size: 12px;
+      color: #adb5bd;
+      text-decoration: line-through;
+    }
+
+    .price-discounted {
+      font-size: 18px;
+      font-weight: 800;
+      color: #2d6a4f;
+    }
+
+    .store-meta {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #6c757d;
+    }
+
+    /* ===== CHECKOUT ===== */
+    .checkout-screen {
+      background: #f8f9fa;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .checkout-hero {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      background: white;
+    }
+
+    .checkout-body {
+      padding: 20px;
+    }
+
+    .checkout-store-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: #212529;
+    }
+
+    .checkout-category {
+      font-size: 13px;
+      color: #6c757d;
+      margin-top: 2px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e9ecef;
+      margin: 16px 0;
+    }
+
+    .bag-detail-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .bag-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .bag-value-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .bag-value-row:last-child { margin-bottom: 0; }
+
+    .bag-value-label {
+      font-size: 14px;
+      color: #495057;
+    }
+
+    .bag-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .bag-value.green { color: #2d6a4f; }
+    .bag-value.strike {
+      text-decoration: line-through;
+      color: #adb5bd;
+      font-weight: 400;
+    }
+
+    .discount-badge {
+      background: #2d6a4f;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .whats-inside {
+      background: #d8f3dc;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-top: 14px;
+    }
+
+    .whats-inside-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1b4332;
+      margin-bottom: 6px;
+    }
+
+    .whats-inside-text {
+      font-size: 13px;
+      color: #2d6a4f;
+    }
+
+    .qty-picker {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 16px;
+      justify-content: center;
+    }
+
+    .qty-btn {
+      width: 40px;
+      height: 40px;
+      background: #e9ecef;
+      border: none;
+      border-radius: 12px;
+      font-size: 20px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #212529;
+      transition: background 0.15s;
+    }
+
+    .qty-btn:active { background: #dee2e6; }
+    .qty-btn.green { background: #2d6a4f; color: white; }
+
+    .qty-num {
+      font-size: 24px;
+      font-weight: 800;
+      color: #212529;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .total-bar {
+      background: white;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      position: sticky;
+      bottom: 0;
+    }
+
+    .total-label { font-size: 13px; color: #6c757d; }
+    .total-price { font-size: 22px; font-weight: 800; color: #2d6a4f; }
+
+    .btn-buy {
+      background: #2d6a4f;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn-buy:active { transform: scale(0.97); opacity: 0.9; }
+
+    /* ===== QR CODE ===== */
+    .qr-screen {
+      background: #f8f9fa;
+      align-items: center;
+    }
+
+    .qr-header {
+      width: 100%;
+      padding: 52px 20px 16px;
+      background: white;
+      box-shadow: 0 1px 0 #e9ecef;
+    }
+
+    .qr-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1b4332;
+      text-align: center;
+    }
+
+    .qr-subtitle {
+      font-size: 13px;
+      color: #6c757d;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .qr-card {
+      background: white;
+      border-radius: 24px;
+      padding: 28px 24px;
+      margin: 24px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      width: calc(100% - 40px);
+    }
+
+    .qr-store-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #212529;
+      text-align: center;
+    }
+
+    .qr-canvas-wrapper {
+      background: white;
+      padding: 12px;
+      border-radius: 16px;
+      border: 2px solid #e9ecef;
+    }
+
+    .qr-canvas-wrapper canvas {
+      display: block;
+    }
+
+    .pin-section {
+      width: 100%;
+      background: #f8f9fa;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .pin-label {
+      font-size: 12px;
+      color: #6c757d;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .pin-number {
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 10px;
+      color: #2d6a4f;
+    }
+
+    .qr-order-info {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .qr-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .qr-info-label { color: #6c757d; }
+    .qr-info-value { font-weight: 600; color: #212529; }
+
+    .qr-instruction {
+      background: #d8f3dc;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #1b4332;
+      text-align: center;
+      margin: 0 20px 32px;
+    }
+
+    /* ===== MERCHANT HOME ===== */
+    .merchant-screen {
+      background: #f8f9fa;
+    }
+
+    .merchant-header {
+      background: linear-gradient(135deg, #1b4332, #2d6a4f);
+      padding: 52px 20px 24px;
+      color: white;
+    }
+
+    .merchant-hello {
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .merchant-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: white;
+      margin-top: 2px;
+    }
+
+    .merchant-stats {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      flex: 1;
+      background: rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 2px;
+    }
+
+    .scan-btn-wrapper {
+      padding: 24px 20px 16px;
+    }
+
+    .scan-btn {
+      width: 100%;
+      background: #2d6a4f;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 22px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(45,106,79,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .scan-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 3px 10px rgba(45,106,79,0.3);
+    }
+
+    .scan-btn-icon { font-size: 32px; }
+
+    .scan-btn-text {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .scan-btn-sub {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .active-bag-section {
+      padding: 0 20px;
+    }
+
+    .bag-management-card {
+      background: white;
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    .bag-mgmt-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .bag-mgmt-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #212529;
+    }
+
+    .edit-link {
+      font-size: 13px;
+      color: #2d6a4f;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .stock-adjuster {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8f9fa;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .stock-label {
+      font-size: 14px;
+      color: #495057;
+    }
+
+    .stock-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stock-ctrl button {
+      width: 32px;
+      height: 32px;
+      background: #2d6a4f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stock-ctrl span {
+      font-size: 20px;
+      font-weight: 800;
+      color: #212529;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .recent-transactions {
+      padding: 16px 20px;
+      padding-bottom: 100px;
+    }
+
+    .transaction-item {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+
+    .tx-left {}
+    .tx-name { font-size: 14px; font-weight: 600; color: #212529; }
+    .tx-time { font-size: 12px; color: #6c757d; margin-top: 2px; }
+    .tx-amount { font-size: 16px; font-weight: 800; color: #2d6a4f; }
+
+    /* ===== SCANNER MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-sheet {
+      background: white;
+      width: 100%;
+      max-width: 390px;
+      border-radius: 28px 28px 0 0;
+      padding: 24px;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-handle {
+      width: 40px;
+      height: 4px;
+      background: #dee2e6;
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #212529;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 13px;
+      color: #6c757d;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .pin-input-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .pin-box {
+      width: 56px;
+      height: 64px;
+      border: 2px solid #dee2e6;
+      border-radius: 14px;
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      color: #2d6a4f;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .pin-box:focus { border-color: #2d6a4f; }
+
+    .btn-confirm {
+      width: 100%;
+      background: #2d6a4f;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-confirm:active { opacity: 0.9; }
+
+    .btn-cancel {
+      width: 100%;
+      background: #f8f9fa;
+      color: #6c757d;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ===== SUCCESS SCREEN ===== */
+    .success-screen {
+      background: white;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .success-circle {
+      width: 120px;
+      height: 120px;
+      background: #d8f3dc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      margin-bottom: 24px;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1b4332;
+      margin-bottom: 8px;
+    }
+
+    .success-subtitle {
+      font-size: 15px;
+      color: #6c757d;
+      text-align: center;
+      padding: 0 32px;
+      margin-bottom: 32px;
+    }
+
+    .success-detail-card {
+      background: #f8f9fa;
+      border-radius: 20px;
+      padding: 20px;
+      width: calc(100% - 40px);
+      margin-bottom: 32px;
+    }
+
+    .success-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .success-row:last-child { margin-bottom: 0; }
+    .success-row-label { color: #6c757d; }
+    .success-row-value { font-weight: 700; color: #212529; }
+    .success-row-value.green { color: #2d6a4f; }
+
+    .btn-done {
+      width: calc(100% - 40px);
+      background: #2d6a4f;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ===== BOTTOM NAV ===== */
     .bottom-nav {
       position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: rgba(10, 17, 40, 0.92);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-top: 1px solid rgba(255,255,255,0.07);
-      box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
-      padding: 10px 8px;
-      padding-bottom: max(10px, env(safe-area-inset-bottom));
-      z-index: 999;
+      bottom: 0;
+      width: 100%;
+      max-width: 390px;
+      background: white;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      padding: 8px 0 20px;
+      z-index: 50;
     }
+
     .nav-item {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
+      cursor: pointer;
+      padding: 6px;
+      transition: opacity 0.2s;
+    }
+
+    .nav-item:active { opacity: 0.6; }
+
+    .nav-icon { font-size: 22px; }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #adb5bd;
+    }
+
+    .nav-label.active { color: #2d6a4f; }
+
+    .scrollable {
+      overflow-y: auto;
       flex: 1;
-      cursor: pointer;
-      padding: 6px 4px;
-      border-radius: 12px;
-      transition: background 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .nav-item:active { background: rgba(255,255,255,0.05); }
-    .nav-item .nav-icon {
-      width: 28px; height: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      transition: background 0.2s, color 0.2s;
-      font-size: 16px;
-    }
-    .nav-item.active .nav-icon {
-      background: rgba(37,99,235,0.2);
-      color: #60A5FA;
-    }
-    .nav-item.active .nav-label { color: #60A5FA; }
-
-    /* Period selector */
-    .period-select {
-      appearance: none;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      color: #CBD5E1;
-      font-family: 'Sora', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      padding: 8px 32px 8px 14px;
-      cursor: pointer;
-      outline: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      transition: border-color 0.2s;
-    }
-    .period-select:focus { border-color: rgba(59,130,246,0.5); }
-
-    /* Avatar */
-    .avatar {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
-      color: white;
-      border: 2px solid rgba(255,255,255,0.15);
-      flex-shrink: 0;
     }
 
-    /* Verified badge */
-    .verified-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px; height: 16px;
-      background: #2563EB;
-      border-radius: 50%;
-      font-size: 8px;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    /* Amount font */
-    .amount-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      letter-spacing: -0.5px;
-    }
-
-    /* Pulse dot */
-    .pulse-dot {
-      width: 8px; height: 8px;
-      background: #10B981;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-      flex-shrink: 0;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
-      50% { opacity: 0.8; transform: scale(0.95); box-shadow: 0 0 0 5px rgba(16,185,129,0); }
-    }
-
-    /* Scroll cards container */
-    .cards-scroll {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 4px 2px 8px;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-    .cards-scroll > * { scroll-snap-align: start; }
-
-    /* Stagger animations */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .fade-up { animation: fadeUp 0.5s cubic-bezier(0.4,0,0.2,1) both; }
-    .delay-1 { animation-delay: 0.08s; }
-    .delay-2 { animation-delay: 0.16s; }
-    .delay-3 { animation-delay: 0.24s; }
-    .delay-4 { animation-delay: 0.32s; }
-    .delay-5 { animation-delay: 0.40s; }
-
-    /* Trend chip */
-    .trend-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 99px;
-      letter-spacing: 0.01em;
-    }
-    .trend-up { background: rgba(16,185,129,0.15); color: #34D399; }
-    .trend-down { background: rgba(244,63,94,0.15); color: #FB7185; }
-
-    /* Section header */
-    .section-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #F1F5F9;
-      letter-spacing: -0.3px;
-    }
-
-    /* Notification dot */
-    .notif-dot {
-      position: absolute;
-      top: 2px; right: 2px;
-      width: 8px; height: 8px;
-      background: #F43F5E;
-      border-radius: 50%;
-      border: 2px solid var(--navy-950);
-    }
-
-    /* Mini sparkline */
-    .sparkline {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 28px;
-    }
-    .spark-bar {
-      width: 4px;
-      border-radius: 2px 2px 0 0;
-      background: rgba(255,255,255,0.15);
-      transition: height 0.8s cubic-bezier(0.4,0,0.2,1);
-    }
-
-    /* Main scroll padding */
-    main { padding-bottom: 90px; }
+    .scrollable::-webkit-scrollbar { display: none; }
   </style>
 </head>
 <body>
-  <div class="glow-blue"></div>
-  <div class="glow-emerald"></div>
+<div id="root"></div>
 
-  <!-- ===== TOP HEADER ===== -->
-  <header class="sticky top-0 z-50 px-5 py-4 fade-up" style="background: rgba(6,11,24,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-bottom: 1px solid rgba(255,255,255,0.06);">
-    <div class="flex items-center justify-between gap-3">
-      <!-- Left: Store info -->
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 mb-0.5">
-          <span class="text-xs font-medium text-slate-400 uppercase tracking-widest">Store</span>
-          <span class="verified-badge"><i class="fa-solid fa-check" style="font-size:7px;"></i></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-base font-bold text-white truncate leading-tight" style="letter-spacing:-0.4px;">Warung Makmur Jaya</h1>
-        </div>
-      </div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-      <!-- Center: Date -->
-      <div class="flex flex-col items-center gap-0.5">
-        <div class="flex items-center gap-1.5">
-          <div class="pulse-dot"></div>
-          <span id="live-time" class="font-mono text-xs font-medium text-slate-300"></span>
-        </div>
-        <span id="live-date" class="text-xs text-slate-500 font-medium"></span>
-      </div>
+// ─── DATA ────────────────────────────────────────────────────────────
+const STORES = [
+  {
+    id: 1, emoji: "🍩", name: "Donat Madu Pak Budi",
+    category: "Bakery & Donat", distance: "0.3 km", rating: "4.8",
+    originalPrice: 85000, discountPrice: 29000, stock: 5,
+    pickupTime: "19.00 – 21.00",
+    hint: "3–5 donat segar berbagai rasa",
+    savings: 67,
+  },
+  {
+    id: 2, emoji: "🥐", name: "Croissant & Co.",
+    category: "Bakery", distance: "0.7 km", rating: "4.9",
+    originalPrice: 120000, discountPrice: 39000, stock: 3,
+    pickupTime: "18.00 – 20.00",
+    hint: "2–3 croissant & pastry pilihan chef",
+    savings: 67,
+  },
+  {
+    id: 3, emoji: "🍱", name: "Warung Sari Laut",
+    category: "Makanan Siap Saji", distance: "1.2 km", rating: "4.6",
+    originalPrice: 65000, discountPrice: 22000, stock: 8,
+    pickupTime: "20.00 – 21.30",
+    hint: "1 porsi nasi + lauk pilihan dapur",
+    savings: 66,
+  },
+  {
+    id: 4, emoji: "🧁", name: "Sweet Corner Bakery",
+    category: "Kue & Roti", distance: "1.5 km", rating: "4.7",
+    originalPrice: 95000, discountPrice: 32000, stock: 6,
+    pickupTime: "19.30 – 21.00",
+    hint: "4–6 kue cupcake & muffin assorted",
+    savings: 66,
+  },
+];
 
-      <!-- Right: Avatar + notification -->
-      <div class="flex items-center gap-3 flex-shrink-0">
-        <button class="relative w-9 h-9 flex items-center justify-center rounded-xl" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);">
-          <i class="fa-regular fa-bell text-slate-300" style="font-size: 15px;"></i>
-          <span class="notif-dot"></span>
-        </button>
-        <div class="avatar">AR</div>
-      </div>
-    </div>
-  </header>
+const TRANSACTIONS = [
+  { id: 1, name: "Budi S.", time: "Tadi, 18:45", amount: "Rp 29.000", bags: 1 },
+  { id: 2, name: "Sari W.", time: "Tadi, 17:30", amount: "Rp 58.000", bags: 2 },
+  { id: 3, name: "Andi P.", time: "Kemarin, 20:10", amount: "Rp 29.000", bags: 1 },
+];
 
-  <!-- ===== MAIN CONTENT ===== -->
-  <main class="px-5 pt-5 relative z-10">
+// ─── FORMAT ──────────────────────────────────────────────────────────
+const fmt = (n) => "Rp " + n.toLocaleString("id-ID");
 
-    <!-- ===== PERIOD SELECTOR ===== -->
-    <div class="flex items-center justify-between mb-4 fade-up delay-1">
-      <div>
-        <p class="text-xs text-slate-500 font-medium mb-0.5">Overview</p>
-        <h2 class="text-lg font-bold text-white" style="letter-spacing:-0.5px;">Financial Summary</h2>
-      </div>
-      <div class="relative">
-        <select class="period-select" id="period-selector">
-          <option>This Month</option>
-          <option>Last Month</option>
-          <option>This Week</option>
-          <option>This Year</option>
-          <option>Custom</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ===== FINANCIAL SUMMARY CARDS (Scrollable) ===== -->
-    <div class="cards-scroll -mx-1 px-1 mb-6 fade-up delay-2">
-      <!-- Revenue Card -->
-      <div class="fin-card revenue" style="min-width: 195px;">
-        <div class="flex items-start justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm" style="background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.25);">
-            <i class="fa-solid fa-arrow-trend-up" style="color: #34D399;"></i>
-          </div>
-          <span class="trend-chip trend-up">
-            <i class="fa-solid fa-caret-up" style="font-size:9px;"></i> 5.2%
-          </span>
-        </div>
-        <p class="text-xs font-medium text-slate-400 mb-1">Total Revenue</p>
-        <p class="amount-text text-xl font-bold text-white mb-1">$1,250.00</p>
-        <!-- Mini sparkline -->
-        <div class="sparkline mb-3" id="spark-revenue">
-          <div class="spark-bar" style="height:40%;"></div>
-          <div class="spark-bar" style="height:55%;"></div>
-          <div class="spark-bar" style="height:45%;"></div>
-          <div class="spark-bar" style="height:70%;"></div>
-          <div class="spark-bar" style="height:60%;"></div>
-          <div class="spark-bar" style="height:85%;"></div>
-          <div class="spark-bar" style="height:100%; background:#34D399;"></div>
-        </div>
-        <p class="text-xs text-slate-500">Updated <span style="color:#64748B;">Today, 10:30 AM</span></p>
-      </div>
-
-      <!-- Expense Card -->
-      <div class="fin-card expense" style="min-width: 195px;">
-        <div class="flex items-start justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm" style="background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.25);">
-            <i class="fa-solid fa-arrow-trend-down" style="color: #FB7185;"></i>
-          </div>
-          <span class="trend-chip trend-down">
-            <i class="fa-solid fa-caret-down" style="font-size:9px;"></i> 1.5%
-          </span>
-        </div>
-        <p class="text-xs font-medium text-slate-400 mb-1">Total Expense</p>
-        <p class="amount-text text-xl font-bold text-white mb-1">$850.00</p>
-        <div class="sparkline mb-3">
-          <div class="spark-bar" style="height:60%;"></div>
-          <div class="spark-bar" style="height:80%;"></div>
-          <div class="spark-bar" style="height:65%;"></div>
-          <div class="spark-bar" style="height:90%;"></div>
-          <div class="spark-bar" style="height:75%;"></div>
-          <div class="spark-bar" style="height:55%;"></div>
-          <div class="spark-bar" style="height:50%; background:#FB7185;"></div>
-        </div>
-        <p class="text-xs text-slate-500">Updated <span style="color:#64748B;">Today, 10:30 AM</span></p>
-      </div>
-
-      <!-- Net Profit Card -->
-      <div class="fin-card profit" style="min-width: 195px;">
-        <div class="flex items-start justify-between mb-3">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm" style="background: rgba(37,99,235,0.18); border: 1px solid rgba(37,99,235,0.25);">
-            <i class="fa-solid fa-sack-dollar" style="color: #60A5FA;"></i>
-          </div>
-          <span class="trend-chip trend-up">
-            <i class="fa-solid fa-caret-up" style="font-size:9px;"></i> 12.8%
-          </span>
-        </div>
-        <p class="text-xs font-medium text-slate-400 mb-1">Net Profit</p>
-        <p class="amount-text text-xl font-bold mb-1" style="color: #34D399;">$400.00</p>
-        <div class="sparkline mb-3">
-          <div class="spark-bar" style="height:30%;"></div>
-          <div class="spark-bar" style="height:45%;"></div>
-          <div class="spark-bar" style="height:55%;"></div>
-          <div class="spark-bar" style="height:50%;"></div>
-          <div class="spark-bar" style="height:70%;"></div>
-          <div class="spark-bar" style="height:80%;"></div>
-          <div class="spark-bar" style="height:100%; background:#34D399;"></div>
-        </div>
-        <p class="text-xs text-slate-500">Updated <span style="color:#64748B;">Today, 10:30 AM</span></p>
-      </div>
-    </div>
-
-    <!-- ===== QUICK ACTION BUTTONS ===== -->
-    <div class="glass-card rounded-2xl p-4 mb-6 fade-up delay-3">
-      <p class="section-title mb-4">Quick Actions</p>
-      <div class="flex gap-3">
-        <button class="action-btn btn-record text-white">
-          <div class="icon-wrap"><i class="fa-solid fa-plus"></i></div>
-          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.2; color: rgba(255,255,255,0.9);">Record<br>Sales</span>
-        </button>
-        <button class="action-btn btn-quick text-white">
-          <div class="icon-wrap"><i class="fa-solid fa-bolt"></i></div>
-          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.2; color: rgba(255,255,255,0.9);">Quick<br>Record</span>
-        </button>
-        <button class="action-btn btn-expense text-white">
-          <div class="icon-wrap"><i class="fa-solid fa-minus"></i></div>
-          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.01em; line-height: 1.2; color: rgba(255,255,255,0.9);">Record<br>Expense</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- ===== SALES ANALYTICS ===== -->
-    <div class="glass-card rounded-2xl p-4 mb-6 fade-up delay-3">
-      <div class="flex items-center justify-between mb-4">
-        <p class="section-title">Top Selling Products</p>
-        <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background: rgba(37,99,235,0.15); color: #60A5FA; border: 1px solid rgba(37,99,235,0.2);">May 2025</span>
-      </div>
-
-      <div class="flex items-center gap-5">
-        <!-- Donut Chart -->
-        <div class="flex-shrink-0 relative">
-          <div class="donut-chart">
-            <div class="donut-hole">
-              <span class="amount-text text-sm font-bold text-white">$1.25k</span>
-              <span class="text-xs text-slate-400 font-medium">total</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Legend + Bars -->
-        <div class="flex-1 min-w-0 space-y-3.5">
-          <!-- Chicken -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
-                <span class="text-xs font-semibold text-slate-200">Chicken</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="amount-text text-xs font-bold" style="color:#34D399;">$500</span>
-                <span class="text-xs text-slate-500">45%</span>
-              </div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" data-width="45" style="background: linear-gradient(90deg, #10B981, #34D399); width: 0%;"></div>
-            </div>
-          </div>
-
-          <!-- Beef -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
-                <span class="text-xs font-semibold text-slate-200">Beef</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="amount-text text-xs font-bold" style="color:#60A5FA;">$400</span>
-                <span class="text-xs text-slate-500">35%</span>
-              </div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" data-width="35" style="background: linear-gradient(90deg, #2563EB, #60A5FA); width: 0%;"></div>
-            </div>
-          </div>
-
-          <!-- Rendang -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#8B5CF6;"></span>
-                <span class="text-xs font-semibold text-slate-200">Rendang</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="amount-text text-xs font-bold" style="color:#A78BFA;">$350</span>
-                <span class="text-xs text-slate-500">20%</span>
-              </div>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" data-width="20" style="background: linear-gradient(90deg, #7C3AED, #A78BFA); width: 0%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== RECENT ACTIVITY ===== -->
-    <div class="glass-card rounded-2xl p-4 mb-6 fade-up delay-4">
-      <div class="flex items-center justify-between mb-2">
-        <p class="section-title">Recent Activity</p>
-        <button class="flex items-center gap-1 text-xs font-semibold" style="color: #60A5FA;">
-          See All <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i>
-        </button>
-      </div>
-
-      <!-- Transaction List -->
-      <div>
-        <!-- Item 1 -->
-        <div class="activity-item">
-          <div class="activity-icon" style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.2);">
-            <i class="fa-solid fa-cart-shopping" style="color:#34D399; font-size:15px;"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-slate-100 truncate" style="letter-spacing:-0.2px;">Sales – Takeout #123</p>
-            <p class="text-xs text-slate-500 mt-0.5">Today, 09:25 AM</p>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="amount-text text-sm font-bold" style="color:#34D399;">+$85.00</p>
-            <span class="text-xs px-1.5 py-0.5 rounded-md" style="background:rgba(16,185,129,0.1); color:#6EE7B7; font-size:10px;">Paid</span>
-          </div>
-        </div>
-
-        <!-- Item 2 -->
-        <div class="activity-item">
-          <div class="activity-icon" style="background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.2);">
-            <i class="fa-solid fa-receipt" style="color:#FB7185; font-size:15px;"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-slate-100 truncate" style="letter-spacing:-0.2px;">Expense – Groceries</p>
-            <p class="text-xs text-slate-500 mt-0.5">Today, 08:10 AM</p>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="amount-text text-sm font-bold" style="color:#FB7185;">-$120.00</p>
-            <span class="text-xs px-1.5 py-0.5 rounded-md" style="background:rgba(244,63,94,0.1); color:#FCA5A5; font-size:10px;">Recorded</span>
-          </div>
-        </div>
-
-        <!-- Item 3 -->
-        <div class="activity-item">
-          <div class="activity-icon" style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.2);">
-            <i class="fa-solid fa-bag-shopping" style="color:#34D399; font-size:15px;"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-slate-100 truncate" style="letter-spacing:-0.2px;">Sales – Dine-in #122</p>
-            <p class="text-xs text-slate-500 mt-0.5">Yesterday, 07:55 PM</p>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="amount-text text-sm font-bold" style="color:#34D399;">+$210.00</p>
-            <span class="text-xs px-1.5 py-0.5 rounded-md" style="background:rgba(16,185,129,0.1); color:#6EE7B7; font-size:10px;">Paid</span>
-          </div>
-        </div>
-
-        <!-- Item 4 -->
-        <div class="activity-item">
-          <div class="activity-icon" style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.2);">
-            <i class="fa-solid fa-truck" style="color:#FCD34D; font-size:15px;"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-slate-100 truncate" style="letter-spacing:-0.2px;">Expense – Delivery Fee</p>
-            <p class="text-xs text-slate-500 mt-0.5">Yesterday, 03:30 PM</p>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="amount-text text-sm font-bold" style="color:#FB7185;">-$45.00</p>
-            <span class="text-xs px-1.5 py-0.5 rounded-md" style="background:rgba(245,158,11,0.1); color:#FCD34D; font-size:10px;">Pending</span>
-          </div>
-        </div>
-
-        <!-- Item 5 -->
-        <div class="activity-item">
-          <div class="activity-icon" style="background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.2);">
-            <i class="fa-solid fa-cart-shopping" style="color:#34D399; font-size:15px;"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-slate-100 truncate" style="letter-spacing:-0.2px;">Sales – Takeout #121</p>
-            <p class="text-xs text-slate-500 mt-0.5">Yesterday, 12:15 PM</p>
-          </div>
-          <div class="text-right flex-shrink-0">
-            <p class="amount-text text-sm font-bold" style="color:#34D399;">+$62.00</p>
-            <span class="text-xs px-1.5 py-0.5 rounded-md" style="background:rgba(16,185,129,0.1); color:#6EE7B7; font-size:10px;">Paid</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Extra bottom spacing -->
-    <div style="height: 12px;"></div>
-  </main>
-
-  <!-- ===== BOTTOM NAVIGATION ===== -->
-  <nav class="bottom-nav">
-    <div class="flex items-center">
-      <!-- Home -->
-      <div class="nav-item active" onclick="setActive(this)">
-        <div class="nav-icon">
-          <i class="fa-solid fa-house-chimney"></i>
-        </div>
-        <span class="nav-label text-slate-400" style="font-size: 10px; font-weight: 600;">Home</span>
-      </div>
-
-      <!-- Record Sales -->
-      <div class="nav-item" onclick="setActive(this)">
-        <div class="nav-icon">
-          <i class="fa-solid fa-circle-plus text-slate-400"></i>
-        </div>
-        <span class="nav-label text-slate-500" style="font-size: 10px; font-weight: 600;">Record</span>
-      </div>
-
-      <!-- Center CTA -->
-      <div class="flex-1 flex justify-center items-center">
-        <button onclick="triggerCenter(this)" class="w-14 h-14 rounded-2xl flex items-center justify-center text-white relative" style="background: linear-gradient(145deg, #2563EB, #1D4ED8); box-shadow: 0 8px 24px rgba(37,99,235,0.5), 0 0 0 1px rgba(255,255,255,0.1); transform: translateY(-10px); transition: transform 0.15s, box-shadow 0.15s;">
-          <i class="fa-solid fa-chart-line" style="font-size: 20px;"></i>
-        </button>
-      </div>
-
-      <!-- History -->
-      <div class="nav-item" onclick="setActive(this)">
-        <div class="nav-icon">
-          <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
-        </div>
-        <span class="nav-label text-slate-500" style="font-size: 10px; font-weight: 600;">History</span>
-      </div>
-
-      <!-- Profile -->
-      <div class="nav-item" onclick="setActive(this)">
-        <div class="nav-icon">
-          <i class="fa-regular fa-circle-user text-slate-400"></i>
-        </div>
-        <span class="nav-label text-slate-500" style="font-size: 10px; font-weight: 600;">Profile</span>
-      </div>
-    </div>
-  </nav>
-
-  <script>
-    // ===== LIVE CLOCK =====
-    function updateClock() {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
-      const el = document.getElementById('live-time');
-      const dateEl = document.getElementById('live-date');
-      if (el) el.textContent = timeStr;
-      if (dateEl) dateEl.textContent = dateStr;
+// ─── QR CANVAS ───────────────────────────────────────────────────────
+function QRCanvas({ value }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current && window.QRCode) {
+      QRCode.toCanvas(ref.current, value, { width: 200, margin: 1,
+        color: { dark: "#1b4332", light: "#ffffff" } }, () => {});
     }
-    updateClock();
-    setInterval(updateClock, 1000);
+  }, [value]);
+  return <canvas ref={ref} />;
+}
 
-    // ===== ANIMATE PROGRESS BARS ON SCROLL =====
-    const progressFills = document.querySelectorAll('.progress-fill');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const target = el.getAttribute('data-width');
-          setTimeout(() => {
-            el.style.width = target + '%';
-          }, 200);
-          observer.unobserve(el);
-        }
-      });
-    }, { threshold: 0.3 });
-    progressFills.forEach(el => observer.observe(el));
+// ─── SCREENS ─────────────────────────────────────────────────────────
 
-    // ===== BOTTOM NAV ACTIVE STATE =====
-    function setActive(item) {
-      const items = document.querySelectorAll('.nav-item');
-      items.forEach(i => {
-        i.classList.remove('active');
-        const icon = i.querySelector('.nav-icon i');
-        const label = i.querySelector('.nav-label');
-        if (icon) { icon.style.color = ''; }
-        if (label) { label.style.color = ''; label.classList.add('text-slate-500'); label.classList.remove('text-blue-400'); }
-      });
-      item.classList.add('active');
-      const activeLabel = item.querySelector('.nav-label');
-      if (activeLabel) {
-        activeLabel.classList.remove('text-slate-500');
-        activeLabel.classList.add('text-blue-400');
-        activeLabel.style.color = '#60A5FA';
-      }
+function SplashScreen({ onCustomer, onMerchant }) {
+  return (
+    <div className="screen splash">
+      <div className="splash-logo">🛍️</div>
+      <div className="splash-title">SacBag</div>
+      <div className="splash-tagline">Selamatkan makanan, hemat lebih banyak. Surprise bag dari toko favoritmu.</div>
+      <div className="splash-btn">
+        <button className="btn-primary" onClick={onCustomer}>🛒 &nbsp; Masuk sebagai Customer</button>
+        <button className="btn-secondary" onClick={onMerchant}>🏪 &nbsp; Masuk sebagai Merchant</button>
+      </div>
+    </div>
+  );
+}
+
+function CustomerHome({ onSelectStore }) {
+  const [activeTag, setActiveTag] = useState("Semua");
+  const tags = ["Semua", "Bakery", "Makanan", "Minuman"];
+
+  const filtered = activeTag === "Semua" ? STORES
+    : STORES.filter(s => s.category.toLowerCase().includes(activeTag.toLowerCase()));
+
+  return (
+    <div className="screen" style={{ paddingBottom: 0 }}>
+      <div className="header">
+        <div className="header-row">
+          <div>
+            <div className="header-title">SacBag 🛍️</div>
+            <div className="header-sub">📍 Meulaboh, Aceh</div>
+          </div>
+          <div className="avatar">👤</div>
+        </div>
+      </div>
+
+      <div className="scrollable">
+        <div className="search-bar">
+          <span>🔍</span>
+          <input placeholder="Cari toko atau makanan..." />
+        </div>
+
+        <div className="tag-row">
+          {tags.map(t => (
+            <div key={t} className={`tag ${activeTag === t ? "active" : ""}`}
+              onClick={() => setActiveTag(t)}>{t}</div>
+          ))}
+        </div>
+
+        <div className="section-title">⏰ Jual Hari Ini</div>
+
+        <div className="store-list">
+          {filtered.map(store => (
+            <div className="store-card" key={store.id} onClick={() => onSelectStore(store)}>
+              <div className="store-card-img" style={{ background: store.id % 2 === 0 ? "#fff9f0" : "#f0fff4" }}>
+                {store.emoji}
+              </div>
+              <div className="store-card-body">
+                <div className="store-card-top">
+                  <div>
+                    <div className="store-name">{store.name}</div>
+                    <div className="store-category">{store.category} · ⭐ {store.rating} · {store.distance}</div>
+                  </div>
+                  <div className="badge-stock">{store.stock} sisa</div>
+                </div>
+                <div className="store-card-footer">
+                  <div className="price-range">
+                    <span className="price-original">{fmt(store.originalPrice)}</span>
+                    <span className="price-discounted">{fmt(store.discountPrice)}</span>
+                  </div>
+                  <div className="store-meta">🕐 {store.pickupTime}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ height: 72 }} />
+    </div>
+  );
+}
+
+function CheckoutScreen({ store, onBack, onPay }) {
+  const [qty, setQty] = useState(1);
+  const total = store.discountPrice * qty;
+  const saved = (store.originalPrice - store.discountPrice) * qty;
+
+  return (
+    <div className="screen checkout-screen">
+      <div className="checkout-hero" style={{ background: store.id % 2 === 0 ? "#fff9f0" : "#f0fff4" }}>
+        <div style={{ fontSize: 90 }}>{store.emoji}</div>
+      </div>
+
+      <div className="scrollable">
+        <div className="checkout-body">
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <button className="back-btn" onClick={onBack}>←</button>
+            <div>
+              <div className="checkout-store-name">{store.name}</div>
+              <div className="checkout-category">{store.category} · ⭐ {store.rating}</div>
+            </div>
+          </div>
+
+          <div className="bag-detail-card">
+            <div className="bag-label">🎁 Surprise Bag</div>
+
+            <div className="bag-value-row">
+              <span className="bag-value-label">Harga normal</span>
+              <span className="bag-value strike">{fmt(store.originalPrice)}</span>
+            </div>
+            <div className="bag-value-row">
+              <span className="bag-value-label">Harga SacBag</span>
+              <span className="bag-value green" style={{ fontSize: 20, fontWeight: 800 }}>{fmt(store.discountPrice)}</span>
+            </div>
+            <div className="bag-value-row">
+              <span className="bag-value-label">Hemat</span>
+              <div className="discount-badge">-{store.savings}%</div>
+            </div>
+
+            <div className="whats-inside">
+              <div className="whats-inside-title">🤫 Isi Bag (Surprise!)</div>
+              <div className="whats-inside-text">{store.hint}</div>
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="bag-detail-card">
+            <div className="bag-label">📦 Jumlah Bag</div>
+            <div className="qty-picker">
+              <button className="qty-btn" onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
+              <span className="qty-num">{qty}</span>
+              <button className="qty-btn green" onClick={() => setQty(Math.min(store.stock, qty + 1))}>+</button>
+            </div>
+          </div>
+
+          <div className="divider" />
+
+          <div className="bag-detail-card" style={{ background: "#f0fff4" }}>
+            <div className="bag-value-row">
+              <span className="bag-value-label">🕐 Waktu Pickup</span>
+              <span className="bag-value">{store.pickupTime}</span>
+            </div>
+            <div className="bag-value-row">
+              <span className="bag-value-label">📍 Lokasi</span>
+              <span className="bag-value">Ambil di Toko</span>
+            </div>
+            <div className="bag-value-row" style={{ marginBottom: 0 }}>
+              <span className="bag-value-label">💚 Dampak</span>
+              <span className="bag-value green">~{(qty * 0.4).toFixed(1)} kg CO₂ hemat</span>
+            </div>
+          </div>
+
+          <div style={{ height: 100 }} />
+        </div>
+      </div>
+
+      <div className="total-bar">
+        <div>
+          <div className="total-label">Total Bayar</div>
+          <div className="total-price">{fmt(total)}</div>
+          <div style={{ fontSize: 11, color: "#52b788" }}>Hemat {fmt(saved)} 🎉</div>
+        </div>
+        <button className="btn-buy" onClick={() => onPay(store, qty, total)}>
+          Bayar Sekarang →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function QRScreen({ store, qty, total, onBack }) {
+  const pin = "4829";
+  const qrValue = `SACBAG|${store.id}|${qty}|${total}|${pin}`;
+  const orderId = "SB" + Date.now().toString().slice(-6);
+
+  return (
+    <div className="screen qr-screen">
+      <div className="qr-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button className="back-btn" onClick={onBack}>←</button>
+          <div>
+            <div className="qr-title">Tiket Pembelian</div>
+            <div className="qr-subtitle">Tunjukkan ke kasir saat pickup</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="scrollable">
+        <div className="qr-card">
+          <div className="qr-store-name">{store.emoji} {store.name}</div>
+
+          <div className="qr-canvas-wrapper">
+            <QRCanvas value={qrValue} />
+          </div>
+
+          <div className="pin-section">
+            <div className="pin-label">🔐 Kode PIN</div>
+            <div className="pin-number">{pin}</div>
+          </div>
+
+          <div className="qr-order-info">
+            <div className="divider" />
+            <div className="qr-info-row">
+              <span className="qr-info-label">Order ID</span>
+              <span className="qr-info-value">#{orderId}</span>
+            </div>
+            <div className="qr-info-row">
+              <span className="qr-info-label">Jumlah Bag</span>
+              <span className="qr-info-value">{qty} bag</span>
+            </div>
+            <div className="qr-info-row">
+              <span className="qr-info-label">Total Bayar</span>
+              <span className="qr-info-value" style={{ color: "#2d6a4f" }}>{fmt(total)}</span>
+            </div>
+            <div className="qr-info-row">
+              <span className="qr-info-label">Pickup</span>
+              <span className="qr-info-value">{store.pickupTime}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="qr-instruction">
+          📌 Datang ke toko pada jam pickup, tunjukkan QR ini + sebutkan PIN ke kasir.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MerchantHome({ onScanSuccess }) {
+  const [stock, setStock] = useState(8);
+  const [showScanner, setShowScanner] = useState(false);
+  const [pin, setPin] = useState(["", "", "", ""]);
+  const refs = [useRef(), useRef(), useRef(), useRef()];
+
+  const handlePinChange = (i, val) => {
+    const cleaned = val.replace(/\D/, "").slice(-1);
+    const next = [...pin];
+    next[i] = cleaned;
+    setPin(next);
+    if (cleaned && i < 3) refs[i + 1].current.focus();
+  };
+
+  const handleConfirm = () => {
+    const code = pin.join("");
+    if (code === "4829") {
+      setShowScanner(false);
+      setPin(["", "", "", ""]);
+      setStock(prev => Math.max(0, prev - 1));
+      onScanSuccess();
+    } else {
+      alert("PIN salah! Coba lagi.");
+      setPin(["", "", "", ""]);
+      refs[0].current.focus();
     }
+  };
 
-    // ===== CENTER NAV BUTTON =====
-    function triggerCenter(btn) {
-      btn.style.transform = 'translateY(-10px) scale(0.9)';
-      btn.style.boxShadow = '0 4px 12px rgba(37,99,235,0.3)';
-      setTimeout(() => {
-        btn.style.transform = 'translateY(-10px) scale(1)';
-        btn.style.boxShadow = '0 8px 24px rgba(37,99,235,0.5), 0 0 0 1px rgba(255,255,255,0.1)';
-      }, 150);
-    }
+  const soldToday = 12 - stock;
 
-    // ===== PERIOD SELECTOR =====
-    document.getElementById('period-selector').addEventListener('change', function() {
-      const amounts = {
-        'This Month': { rev: '$1,250.00', exp: '$850.00', profit: '$400.00' },
-        'Last Month': { rev: '$1,085.00', exp: '$790.00', profit: '$295.00' },
-        'This Week':  { rev: '$342.00',   exp: '$210.00', profit: '$132.00' },
-        'This Year':  { rev: '$14,500.00',exp: '$9,200.00',profit: '$5,300.00' },
-        'Custom':     { rev: '$—',        exp: '$—',       profit: '$—' },
-      };
-      const d = amounts[this.value] || amounts['This Month'];
-      const cards = document.querySelectorAll('.fin-card');
-      // animate amounts
-      cards[0].querySelector('.amount-text').textContent = d.rev;
-      cards[1].querySelector('.amount-text').textContent = d.exp;
-      cards[2].querySelector('.amount-text').textContent = d.profit;
-      // quick flash
-      cards.forEach(c => {
-        c.style.opacity = '0.6';
-        c.style.transform = 'scale(0.98)';
-        setTimeout(() => { c.style.opacity = '1'; c.style.transform = ''; }, 200);
-      });
-    });
+  return (
+    <div className="screen merchant-screen">
+      <div className="merchant-header">
+        <div className="header-row">
+          <div>
+            <div className="merchant-hello">Selamat datang, 👋</div>
+            <div className="merchant-name">Donat Madu Pak Budi</div>
+          </div>
+          <div className="avatar">🏪</div>
+        </div>
+        <div className="merchant-stats">
+          <div className="stat-card">
+            <div className="stat-number">{stock}</div>
+            <div className="stat-label">Bag Tersisa</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{soldToday}</div>
+            <div className="stat-label">Terjual Hari Ini</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{fmt(soldToday * 29000).replace("Rp ", "")}</div>
+            <div className="stat-label">Pendapatan</div>
+          </div>
+        </div>
+      </div>
 
-    // ===== ACTION BUTTON RIPPLE-ISH FEEDBACK =====
-    document.querySelectorAll('.action-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        this.style.transform = 'scale(0.93)';
-        setTimeout(() => { this.style.transform = ''; }, 120);
-      });
-    });
+      <div className="scrollable">
+        <div className="scan-btn-wrapper">
+          <button className="scan-btn" onClick={() => setShowScanner(true)}>
+            <span className="scan-btn-icon">📷</span>
+            <div>
+              <div className="scan-btn-text">Scan QR Pembeli</div>
+              <div className="scan-btn-sub">Tap untuk verifikasi pembelian</div>
+            </div>
+          </button>
+        </div>
 
-    // ===== STAGGER DONUT ROTATION HINT =====
-    let deg = 0;
-    setInterval(() => {
-      deg = (deg + 0.15) % 360;
-      const chart = document.querySelector('.donut-chart');
-      if (chart) chart.style.transform = `rotate(${deg}deg)`;
-    }, 30);
-  </script>
+        <div className="active-bag-section">
+          <div className="section-title" style={{ padding: 0, marginBottom: 12 }}>📦 Kelola Surprise Bag Hari Ini</div>
+          <div className="bag-management-card">
+            <div className="bag-mgmt-top">
+              <div className="bag-mgmt-title">🍩 Surprise Bag Donat</div>
+              <button className="edit-link">Edit</button>
+            </div>
+
+            <div className="stock-adjuster">
+              <span className="stock-label">Stok tersisa hari ini</span>
+              <div className="stock-ctrl">
+                <button onClick={() => setStock(Math.max(0, stock - 1))}>−</button>
+                <span>{stock}</span>
+                <button onClick={() => setStock(stock + 1)}>+</button>
+              </div>
+            </div>
+
+            <div className="bag-value-row" style={{ padding: "0 4px" }}>
+              <span className="bag-value-label" style={{ fontSize: 13, color: "#6c757d" }}>Harga Bag</span>
+              <span className="bag-value" style={{ fontSize: 13, color: "#2d6a4f", fontWeight: 700 }}>Rp 29.000 <span style={{ color: "#adb5bd", textDecoration: "line-through", fontWeight: 400 }}>Rp 85.000</span></span>
+            </div>
+            <div className="bag-value-row" style={{ padding: "0 4px" }}>
+              <span className="bag-value-label" style={{ fontSize: 13, color: "#6c757d" }}>Jam Pickup</span>
+              <span className="bag-value" style={{ fontSize: 13 }}>19.00 – 21.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="recent-transactions">
+          <div className="section-title" style={{ padding: 0, marginBottom: 12 }}>🧾 Transaksi Terakhir</div>
+          {TRANSACTIONS.map(tx => (
+            <div className="transaction-item" key={tx.id}>
+              <div className="tx-left">
+                <div className="tx-name">👤 {tx.name}</div>
+                <div className="tx-time">{tx.time} · {tx.bags} bag</div>
+              </div>
+              <div className="tx-amount">{tx.amount}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showScanner && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target.className === "modal-overlay") { setShowScanner(false); setPin(["","","",""]); } }}>
+          <div className="modal-sheet">
+            <div className="modal-handle" />
+            <div className="modal-title">📷 Verifikasi Pembeli</div>
+            <div className="modal-sub">Minta pembeli sebutkan PIN 4 digit mereka</div>
+
+            <div className="pin-input-row">
+              {pin.map((p, i) => (
+                <input
+                  key={i}
+                  ref={refs[i]}
+                  className="pin-box"
+                  type="tel"
+                  maxLength={1}
+                  value={p}
+                  onChange={(e) => handlePinChange(i, e.target.value)}
+                />
+              ))}
+            </div>
+
+            <button className="btn-confirm" onClick={handleConfirm}>
+              ✅ Konfirmasi Transaksi
+            </button>
+            <button className="btn-cancel" onClick={() => { setShowScanner(false); setPin(["","","",""]); }}>
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SuccessScreen({ onDone }) {
+  const time = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  return (
+    <div className="screen success-screen">
+      <div className="success-circle">✅</div>
+      <div className="success-title">Transaksi Sukses!</div>
+      <div className="success-subtitle">Surprise Bag telah diserahkan ke pembeli. Stok otomatis diperbarui.</div>
+
+      <div className="success-detail-card">
+        <div className="success-row">
+          <span className="success-row-label">Waktu</span>
+          <span className="success-row-value">{time}, hari ini</span>
+        </div>
+        <div className="success-row">
+          <span className="success-row-label">Jumlah Bag</span>
+          <span className="success-row-value">1 Surprise Bag</span>
+        </div>
+        <div className="success-row">
+          <span className="success-row-label">Pendapatan</span>
+          <span className="success-row-value green">+ Rp 29.000</span>
+        </div>
+        <div className="success-row">
+          <span className="success-row-label">Makanan Diselamatkan</span>
+          <span className="success-row-value green">~0.4 kg CO₂ 🌱</span>
+        </div>
+      </div>
+
+      <button className="btn-done" onClick={onDone}>Kembali ke Dashboard</button>
+    </div>
+  );
+}
+
+// ─── APP ─────────────────────────────────────────────────────────────
+function App() {
+  const [screen, setScreen] = useState("splash");
+  const [mode, setMode] = useState(null);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [orderQty, setOrderQty] = useState(1);
+  const [orderTotal, setOrderTotal] = useState(0);
+
+  const goCustomer = () => { setMode("customer"); setScreen("customerHome"); };
+  const goMerchant = () => { setMode("merchant"); setScreen("merchantHome"); };
+
+  const handleSelectStore = (store) => {
+    setSelectedStore(store);
+    setScreen("checkout");
+  };
+
+  const handlePay = (store, qty, total) => {
+    setOrderQty(qty);
+    setOrderTotal(total);
+    setScreen("qr");
+  };
+
+  const handleScanSuccess = () => setScreen("merchantSuccess");
+
+  return (
+    <div style={{ position: "relative" }}>
+      {screen === "splash" && <SplashScreen onCustomer={goCustomer} onMerchant={goMerchant} />}
+      {screen === "customerHome" && <CustomerHome onSelectStore={handleSelectStore} />}
+      {screen === "checkout" && <CheckoutScreen store={selectedStore} onBack={() => setScreen("customerHome")} onPay={handlePay} />}
+      {screen === "qr" && <QRScreen store={selectedStore} qty={orderQty} total={orderTotal} onBack={() => setScreen("checkout")} />}
+      {screen === "merchantHome" && <MerchantHome onScanSuccess={handleScanSuccess} />}
+      {screen === "merchantSuccess" && <SuccessScreen onDone={() => setScreen("merchantHome")} />}
+
+      {(screen === "customerHome" || screen === "checkout" || screen === "qr") && (
+        <div className="bottom-nav">
+          <div className="nav-item" onClick={() => setScreen("customerHome")}>
+            <span className="nav-icon">🏠</span>
+            <span className={`nav-label ${screen === "customerHome" ? "active" : ""}`}>Home</span>
+          </div>
+          <div className="nav-item">
+            <span className="nav-icon">🎁</span>
+            <span className="nav-label">Pesananku</span>
+          </div>
+          <div className="nav-item">
+            <span className="nav-icon">🌱</span>
+            <span className="nav-label">Dampak</span>
+          </div>
+          <div className="nav-item">
+            <span className="nav-icon">👤</span>
+            <span className="nav-label">Profil</span>
+          </div>
+        </div>
+      )}
+
+      {(screen === "merchantHome" || screen === "merchantSuccess") && (
+        <div className="bottom-nav">
+          <div className="nav-item">
+            <span className="nav-icon">🏠</span>
+            <span className={`nav-label ${screen === "merchantHome" ? "active" : ""}`}>Dashboard</span>
+          </div>
+          <div className="nav-item">
+            <span className="nav-icon">📦</span>
+            <span className="nav-label">Bag Saya</span>
+          </div>
+          <div className="nav-item">
+            <span className="nav-icon">📊</span>
+            <span className="nav-label">Statistik</span>
+          </div>
+          <div className="nav-item" onClick={() => setScreen("splash")}>
+            <span className="nav-icon">⚙️</span>
+            <span className="nav-label">Keluar</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
 </body>
 </html>
