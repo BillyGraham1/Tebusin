@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tebusin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --green: #2D7A4F;
+    --green-light: #4CAF50;
+    --green-pale: #E8F5E9;
+    --orange: #F57C00;
+    --orange-light: #FF9800;
+    --orange-pale: #FFF3E0;
+    --bg: #F5F5F5;
+    --white: #FFFFFF;
+    --text: #212121;
+    --text-muted: #757575;
+    --border: #E0E0E0;
+    --danger: #E53935;
+    --shadow: 0 2px 8px rgba(0,0,0,0.12);
+    --radius: 16px;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #E0E0E0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  #app {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .screen.active { display: flex; }
+
+  .scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll-content::-webkit-scrollbar { display: none; }
+
+  /* ===== SPLASH ===== */
+  #splash {
+    background: linear-gradient(160deg, var(--green) 0%, var(--green-light) 50%, var(--orange-light) 100%);
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+  }
+  .splash-logo-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 28px;
+    object-fit: cover;
+    transform: scale(1.15);
+  }
+  .splash-title { font-size: 36px; font-weight: 800; color: var(--white); letter-spacing: -1px; }
+  .splash-sub { font-size: 14px; color: rgba(255,255,255,0.85); text-align: center; }
+
+  /* ===== LOGIN ===== */
+  #login { background: var(--white); justify-content: center; padding: 40px 28px; }
+  .login-header { text-align: center; margin-bottom: 36px; }
+  .login-title { font-size: 26px; font-weight: 800; color: var(--text); }
+  .login-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%; padding: 14px 16px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 15px; outline: none; transition: border-color 0.2s; background: var(--bg);
+  }
+  .form-input:focus { border-color: var(--green); background: var(--white); }
+
+  .btn {
+    width: 100%; padding: 16px; border: none; border-radius: 14px;
+    font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: linear-gradient(135deg, var(--green), var(--green-light)); color: var(--white); box-shadow: 0 4px 16px rgba(45,122,79,0.35); }
+  .btn-orange { background: linear-gradient(135deg, var(--orange), var(--orange-light)); color: var(--white); box-shadow: 0 4px 16px rgba(245,124,0,0.35); }
+  .btn-outline { background: transparent; border: 2px solid var(--green); color: var(--green); }
+  .btn-sm { padding: 10px 18px; font-size: 13px; border-radius: 10px; width: auto; }
+  .btn-danger { background: var(--danger); color: var(--white); }
+  .btn-gray { background: #eee; color: var(--text-muted); }
+
+  .login-hint { background: var(--green-pale); border-radius: 12px; padding: 12px 14px; margin-top: 20px; font-size: 12px; color: var(--green); line-height: 1.6; }
+  .login-hint b { font-weight: 700; }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    background: var(--white); padding: 16px 20px 12px; display: flex;
+    align-items: center; gap: 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; position: relative;
+  }
+  .topbar-back {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--bg);
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+  }
+  .topbar-title { font-size: 17px; font-weight: 700; color: var(--text); flex: 1; }
+  .topbar-logo { font-size: 20px; font-weight: 800; color: var(--green); }
+  .topbar-coin { display: flex; align-items: center; gap: 4px; background: var(--orange-pale); padding: 6px 10px; border-radius: 20px; }
+  .topbar-coin span { font-size: 13px; font-weight: 700; color: var(--orange); }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav { background: var(--white); display: flex; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 10px 0 8px; cursor: pointer; border: none; background: none; transition: all 0.15s;
+  }
+  .nav-item .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-item .nav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 3px; }
+  .nav-item.active .nav-label { color: var(--green); }
+  .nav-item.active .nav-icon { transform: scale(1.1); }
+
+  /* ===== HOME CUSTOMER ===== */
+  .home-header {
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%);
+    padding: 20px 20px 28px; color: var(--white); position: relative; overflow: hidden;
+  }
+  .home-header::after { content: '🌿'; position: absolute; right: -10px; top: -10px; font-size: 100px; opacity: 0.1; }
+  .home-greeting { font-size: 13px; opacity: 0.85; }
+  .home-name { font-size: 22px; font-weight: 800; margin-top: 2px; }
+  .home-location {
+    display: flex; align-items: center; gap: 4px; margin-top: 6px;
+    font-size: 12px; opacity: 0.9; background: rgba(255,255,255,0.15);
+    padding: 5px 10px; border-radius: 20px; width: fit-content; cursor: pointer;
+  }
+  .home-coin-card {
+    background: rgba(255,255,255,0.18); border-radius: 14px; padding: 12px 14px; margin-top: 14px;
+    display: flex; align-items: center; justify-content: space-between; backdrop-filter: blur(4px);
+  }
+  .home-coin-val { font-size: 20px; font-weight: 800; }
+  .home-coin-label { font-size: 11px; opacity: 0.85; margin-top: 1px; }
+
+  /* ===== ECO IMPACT BANNER ===== */
+  .eco-banner {
+    margin: 12px 20px 0;
+    background: linear-gradient(135deg, #1B5E20, #2D7A4F);
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eco-icon { font-size: 32px; flex-shrink: 0; }
+  .eco-stats { flex: 1; }
+  .eco-stats-row { display: flex; gap: 16px; margin-top: 6px; }
+  .eco-stat { text-align: center; }
+  .eco-stat-val { font-size: 15px; font-weight: 800; }
+  .eco-stat-label { font-size: 9px; opacity: 0.8; margin-top: 1px; }
+  .eco-title { font-size: 12px; font-weight: 700; opacity: 0.9; }
+
+  .section-title { font-size: 16px; font-weight: 700; color: var(--text); padding: 18px 20px 10px; }
+
+  .search-bar {
+    margin: 0 20px 4px; background: var(--white); border-radius: 14px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow);
+  }
+  .search-bar input { border: none; outline: none; font-size: 14px; flex: 1; background: transparent; }
+
+  /* ===== BANNER ===== */
+  .banner-wrap { padding: 0 20px; margin-top: 4px; }
+  .banner {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+    border-radius: 16px; padding: 16px 18px; color: var(--white);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .banner-text { font-size: 13px; font-weight: 600; line-height: 1.5; }
+  .banner-cta {
+    background: var(--white); color: var(--orange); border: none; border-radius: 8px;
+    padding: 7px 12px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; margin-left: 10px;
+  }
+
+  /* ===== RESTO CARD ===== */
+  .resto-list { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .resto-card { background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s; }
+  .resto-card:active { transform: scale(0.98); }
+  .resto-img { width: 100%; height: 130px; object-fit: cover; background: linear-gradient(135deg, #e8f5e9, #fff3e0); display: flex; align-items: center; justify-content: center; font-size: 52px; }
+  .resto-info { padding: 12px 14px; }
+  .resto-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .resto-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .resto-rating { font-size: 12px; color: var(--orange); font-weight: 600; }
+  .resto-cat { font-size: 12px; color: var(--text-muted); }
+  .resto-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .bag-tag { background: var(--green-pale); color: var(--green); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .pickup-tag { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== DETAIL RESTO ===== */
+  .detail-hero { width: 100%; height: 200px; background: linear-gradient(135deg, #e8f5e9, #fff3e0); display: flex; align-items: center; justify-content: center; font-size: 80px; flex-shrink: 0; }
+  .detail-body { padding: 20px; }
+  .detail-name { font-size: 22px; font-weight: 800; color: var(--text); }
+  .detail-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; color: var(--text-muted); }
+  .detail-row b { color: var(--orange); }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .bag-option { background: var(--white); border: 2px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+  .bag-option.selected { border-color: var(--green); background: var(--green-pale); }
+  .bag-option-top { display: flex; justify-content: space-between; align-items: center; }
+  .bag-price { font-size: 18px; font-weight: 800; color: var(--green); }
+  .bag-ori { font-size: 12px; color: var(--text-muted); text-decoration: line-through; }
+  .bag-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .bag-save { font-size: 11px; color: var(--orange); font-weight: 700; }
+
+  /* Quantity selector */
+  .qty-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg); border-radius: 12px; padding: 10px 14px; margin-top: 10px;
+  }
+  .qty-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .qty-control { display: flex; align-items: center; gap: 10px; }
+  .qty-btn {
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--border);
+    background: var(--white); font-size: 16px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-weight: 700; transition: all 0.15s;
+  }
+  .qty-btn:active { background: var(--green-pale); border-color: var(--green); }
+  .qty-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+  .qty-val { font-size: 16px; font-weight: 800; min-width: 24px; text-align: center; }
+  .qty-stock { font-size: 11px; color: var(--text-muted); }
+
+  /* Eco impact inline */
+  .eco-impact-box {
+    background: linear-gradient(135deg, #E8F5E9, #F1F8E9);
+    border: 1.5px solid #A5D6A7;
+    border-radius: 12px; padding: 12px 14px; margin-top: 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eco-impact-icon { font-size: 24px; }
+  .eco-impact-stats { display: flex; gap: 16px; }
+  .eco-impact-item { text-align: center; }
+  .eco-impact-val { font-size: 14px; font-weight: 800; color: var(--green); }
+  .eco-impact-label { font-size: 10px; color: var(--text-muted); }
+
+  .pickup-box { background: var(--orange-pale); border-radius: 12px; padding: 12px 14px; margin: 14px 0; }
+  .pickup-box-title { font-size: 12px; font-weight: 700; color: var(--orange); margin-bottom: 4px; }
+  .pickup-box-time { font-size: 15px; font-weight: 700; color: var(--text); }
+  .pickup-box-warn { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ===== CHECKOUT / DISKON ===== */
+  .discount-box {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s;
+  }
+  .discount-box.active { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+  .toggle-switch { width: 36px; height: 20px; background: var(--border); border-radius: 10px; position: relative; transition: 0.2s; }
+  .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: var(--white); border-radius: 50%; transition: 0.2s; }
+  .discount-box.active .toggle-switch { background: var(--green); }
+  .discount-box.active .toggle-switch::after { left: 18px; }
+
+  /* Voucher input */
+  .voucher-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .voucher-input-row input {
+    flex: 1; padding: 12px 14px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 14px; outline: none; font-family: monospace; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .voucher-input-row input:focus { border-color: var(--green); }
+  .voucher-input-row button { padding: 12px 16px; background: var(--green); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+
+  /* Summary box */
+  .summary-box { background: var(--white); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
+  .summary-row.total { font-weight: 800; font-size: 16px; border-top: 1.5px solid var(--border); margin-top: 8px; padding-top: 10px; color: var(--green); }
+  .summary-row.discount { color: var(--orange); }
+  .summary-row.koin-row { color: var(--green); }
+
+  /* ===== QR SCREEN ===== */
+  .qr-screen-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 24px 20px; gap: 16px; overflow-y: auto; }
+  .qr-box { background: var(--white); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow); width: 100%; }
+  .qr-code { width: 180px; height: 180px; background: #000; border-radius: 8px; margin: 8px 0; position: relative; overflow: hidden; }
+  .qr-pattern { width: 100%; height: 100%; background-image: repeating-linear-gradient(0deg, transparent, transparent 6px, #fff 6px, #fff 7px), repeating-linear-gradient(90deg, transparent, transparent 6px, #fff 6px, #fff 7px); opacity: 0.15; }
+  .qr-corner { position: absolute; width: 36px; height: 36px; border: 4px solid #fff; border-radius: 4px; }
+  .qr-corner.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+  .qr-corner.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+  .qr-corner.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+  .qr-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .qr-code-text { font-size: 22px; font-weight: 800; letter-spacing: 6px; color: var(--text); }
+  .qr-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .qr-info { background: var(--green-pale); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--green); line-height: 1.6; width: 100%; }
+  .order-detail { background: var(--white); border-radius: 16px; padding: 16px; width: 100%; box-shadow: var(--shadow); }
+  .order-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .order-row.total { font-weight: 700; font-size: 15px; border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; }
+
+  /* ===== RATING ===== */
+  .rating-screen { padding: 20px; flex: 1; overflow-y: auto; }
+  .rating-stars { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+  .star { font-size: 36px; cursor: pointer; transition: transform 0.1s; opacity: 0.3; }
+  .star.active { opacity: 1; transform: scale(1.1); }
+  .rating-textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; resize: none; height: 90px; outline: none; font-family: inherit; margin: 10px 0; }
+  .rating-textarea:focus { border-color: var(--green); }
+  .upload-box { border: 2px dashed var(--border); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; margin: 10px 0; transition: all 0.2s; }
+  .upload-box:hover { border-color: var(--orange); background: var(--orange-pale); }
+  .coin-reward { background: var(--orange-pale); border-radius: 12px; padding: 10px 14px; font-size: 13px; color: var(--orange); font-weight: 600; text-align: center; margin: 6px 0; }
+
+  /* ===== RIWAYAT ===== */
+  .history-card { background: var(--white); border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .history-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .history-name { font-size: 14px; font-weight: 700; }
+  .status-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .status-done { background: var(--green-pale); color: var(--green); }
+  .status-waiting { background: var(--orange-pale); color: var(--orange); }
+  .status-expired { background: #fce4e4; color: var(--danger); }
+  .history-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .history-price { font-size: 15px; font-weight: 800; color: var(--green); margin-top: 8px; }
+
+  /* ===== KOIN & VOUCHER ===== */
+  .coin-hero { background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%); padding: 24px 20px; color: var(--white); text-align: center; }
+  .coin-hero-val { font-size: 40px; font-weight: 900; }
+  .coin-hero-label { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .coin-history { padding: 0 20px; }
+  .coin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .coin-item-label { font-size: 13px; color: var(--text); }
+  .coin-item-date { font-size: 11px; color: var(--text-muted); }
+  .coin-plus { font-size: 14px; font-weight: 700; color: var(--green); }
+  .coin-minus { font-size: 14px; font-weight: 700; color: var(--danger); }
+
+  .voucher-card { background: var(--white); border-radius: 14px; margin: 0 20px 10px; overflow: hidden; box-shadow: var(--shadow); display: flex; }
+  .voucher-stripe { width: 6px; background: linear-gradient(180deg, var(--green), var(--orange-light)); }
+  .voucher-body { padding: 12px 14px; flex: 1; }
+  .voucher-name { font-size: 14px; font-weight: 700; }
+  .voucher-code { font-size: 12px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
+  .voucher-exp { font-size: 11px; color: var(--orange); margin-top: 4px; }
+  .voucher-btn { background: none; border: none; padding: 0 14px; font-size: 13px; font-weight: 700; color: var(--green); cursor: pointer; flex-shrink: 0; align-self: center; }
+
+  /* ===== PROFIL CUSTOMER ===== */
+  .profile-header { background: linear-gradient(135deg, var(--green) 0%, var(--green-light) 100%); padding: 30px 20px 24px; color: var(--white); display: flex; align-items: center; gap: 16px; }
+  .avatar { width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 28px; border: 3px solid rgba(255,255,255,0.4); }
+  .profile-name { font-size: 18px; font-weight: 800; }
+  .profile-email { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+  .profile-menu { padding: 16px 20px; }
+  .menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .menu-icon { font-size: 20px; width: 28px; text-align: center; }
+  .menu-text { font-size: 14px; font-weight: 500; flex: 1; }
+  .menu-arrow { color: var(--text-muted); font-size: 16px; }
+
+  .referral-box { background: var(--green-pale); border-radius: 14px; padding: 16px; margin: 12px 20px; }
+  .referral-title { font-size: 14px; font-weight: 700; color: var(--green); }
+  .referral-desc { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .referral-code { background: var(--white); border-radius: 10px; padding: 10px 14px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .referral-code-text { font-size: 18px; font-weight: 800; letter-spacing: 2px; color: var(--green); font-family: monospace; }
+
+  /* ===== LEADERBOARD / ECO IMPACT ===== */
+  .impact-screen { padding: 0; }
+  .impact-hero {
+    background: linear-gradient(135deg, #1B5E20, #2D7A4F);
+    padding: 24px 20px 32px; color: white; text-align: center;
+  }
+  .impact-big { font-size: 48px; font-weight: 900; margin-top: 8px; }
+  .impact-sub { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+  .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 20px 0; }
+  .impact-card { background: var(--white); border-radius: 14px; padding: 14px; text-align: center; box-shadow: var(--shadow); }
+  .impact-card-icon { font-size: 28px; }
+  .impact-card-val { font-size: 18px; font-weight: 800; color: var(--green); margin-top: 4px; }
+  .impact-card-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .leaderboard-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+    border-bottom: 1px solid var(--border); background: var(--white);
+  }
+  .lb-rank { font-size: 16px; font-weight: 800; width: 28px; text-align: center; }
+  .lb-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-pale); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .lb-name { flex: 1; font-size: 13px; font-weight: 600; }
+  .lb-bags { font-size: 12px; color: var(--green); font-weight: 700; }
+  .lb-me { background: var(--green-pale); }
+
+  /* ===== RESTO SCREENS ===== */
+  .resto-home-header { background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%); padding: 24px 20px; color: var(--white); }
+  .stat-row { display: flex; gap: 10px; margin-top: 14px; }
+  .stat-card { flex: 1; background: rgba(255,255,255,0.2); border-radius: 14px; padding: 12px; text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 800; }
+  .stat-label { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+
+  .stok-item { background: var(--white); border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; }
+  .stok-emoji { font-size: 32px; }
+  .stok-info { flex: 1; }
+  .stok-name { font-size: 14px; font-weight: 700; }
+  .stok-price { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 2px; }
+  .stok-counter { display: flex; align-items: center; gap: 10px; }
+  .counter-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); background: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: all 0.15s; }
+  .counter-btn:active { background: var(--green-pale); border-color: var(--green); }
+  .counter-val { font-size: 16px; font-weight: 700; min-width: 24px; text-align: center; }
+
+  .scan-box { background: var(--white); border-radius: 20px; padding: 24px; margin: 0 20px; box-shadow: var(--shadow); text-align: center; }
+  .scan-viewfinder { width: 200px; height: 200px; border-radius: 16px; background: #111; margin: 16px auto; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .scan-line { position: absolute; width: 80%; height: 2px; background: linear-gradient(90deg, transparent, var(--green-light), transparent); animation: scanAnim 2s ease-in-out infinite; }
+  @keyframes scanAnim { 0% { top: 20%; } 50% { top: 80%; } 100% { top: 20%; } }
+  .scan-corner-box { position: absolute; width: 36px; height: 36px; border: 3px solid var(--green-light); }
+  .scan-corner-box.tl { top: 12px; left: 12px; border-right: none; border-bottom: none; border-radius: 4px 0 0 0; }
+  .scan-corner-box.tr { top: 12px; right: 12px; border-left: none; border-bottom: none; border-radius: 0 4px 0 0; }
+  .scan-corner-box.bl { bottom: 12px; left: 12px; border-right: none; border-top: none; border-radius: 0 0 0 4px; }
+  .scan-corner-box.br { bottom: 12px; right: 12px; border-left: none; border-top: none; border-radius: 0 0 4px 0; }
+  .manual-input { display: flex; gap: 8px; margin-top: 16px; }
+  .manual-input input { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px; outline: none; font-family: monospace; letter-spacing: 2px; text-transform: uppercase; }
+  .manual-input input:focus { border-color: var(--orange); }
+  .manual-input button { padding: 12px 16px; background: var(--orange); color: var(--white); border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+  /* ===== RESTO PROFIL ===== */
+  .resto-profile-header {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+    padding: 28px 20px 24px; color: var(--white);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .resto-avatar { width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 28px; border: 3px solid rgba(255,255,255,0.4); }
+
+  /* Saldo card */
+  .saldo-card {
+    background: var(--white); border-radius: 16px; margin: 16px 20px 0;
+    padding: 16px; box-shadow: var(--shadow);
+  }
+  .saldo-label { font-size: 12px; color: var(--text-muted); }
+  .saldo-val { font-size: 28px; font-weight: 900; color: var(--green); margin-top: 4px; }
+  .saldo-pending { font-size: 12px; color: var(--orange); margin-top: 2px; }
+  .saldo-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .saldo-btn {
+    flex: 1; padding: 10px; border-radius: 12px; border: none; font-size: 13px;
+    font-weight: 700; cursor: pointer; text-align: center;
+  }
+  .saldo-btn-primary { background: var(--green); color: white; }
+  .saldo-btn-outline { background: transparent; border: 2px solid var(--green); color: var(--green); }
+
+  /* Tarik saldo modal */
+  .modal-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); display: none; justify-content: center;
+    align-items: flex-end; z-index: 999;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-sheet {
+    background: var(--white); border-radius: 24px 24px 0 0; padding: 24px 20px 32px;
+    width: 100%; max-height: 80%;
+  }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+  .bank-option {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    border: 1.5px solid var(--border); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .bank-option.selected { border-color: var(--orange); background: var(--orange-pale); }
+  .bank-icon { width: 36px; height: 36px; background: var(--orange-pale); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .bank-name { font-size: 14px; font-weight: 600; }
+  .bank-acc { font-size: 12px; color: var(--text-muted); }
+
+  /* ===== SUCCESS OVERLAY ===== */
+  .success-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 9999; }
+  .success-overlay.show { display: flex; }
+  .success-card { background: var(--white); border-radius: 24px; padding: 32px 24px; text-align: center; width: 300px; }
+  .success-icon { font-size: 56px; margin-bottom: 12px; }
+  .success-title { font-size: 20px; font-weight: 800; color: var(--text); }
+  .success-sub { font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+  .success-btn { width: 100%; margin-top: 20px; padding: 14px; background: var(--green); color: var(--white); border: none; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  /* ===== TOAST ===== */
+  .toast { position: absolute; bottom: 90px; left: 20px; right: 20px; background: var(--text); color: var(--white); padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 9998; opacity: 0; transition: opacity 0.3s; text-align: center; }
+  .toast.show { opacity: 1; }
+
+  /* ===== CHIPS ===== */
+  .chip-row { display: flex; gap: 8px; padding: 0 20px 8px; overflow-x: auto; scrollbar-width: none; }
+  .chip-row::-webkit-scrollbar { display: none; }
+  .chip { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--white); border: 1.5px solid var(--border); cursor: pointer; color: var(--text-muted); white-space: nowrap; }
+  .chip.active { background: var(--green); border-color: var(--green); color: var(--white); }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag { background: var(--green-pale); color: var(--green); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+
+  .resto-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 0 8px; cursor: pointer; border: none; background: none; transition: all 0.15s; }
+  .resto-nav-item .nav-icon { font-size: 22px; line-height: 1; }
+  .resto-nav-item .nav-label { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 3px; }
+  .resto-nav-item.active .nav-label { color: var(--orange); }
+  .resto-nav-item.active .nav-icon { transform: scale(1.1); }
+
+  .info-box { background: var(--green-pale); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--green); line-height: 1.6; margin: 0 0 14px; }
+  .info-box b { font-weight: 700; }
+
+  /* Location change modal */
+  .location-list { padding: 0; }
+  .location-opt {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s;
+  }
+  .location-opt:active { background: var(--bg); }
+  .location-opt-icon { font-size: 20px; width: 28px; text-align: center; }
+  .location-opt-text { flex: 1; font-size: 14px; font-weight: 500; }
+  .location-opt-dist { font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== SPLASH ===== -->
+  <div id="splash" class="screen active">
+    <div class="splash-logo">
+      <img src="logo.jpeg" alt="Tebusin Logo" class="splash-logo-img">
+    </div>
+    <div class="splash-title">Tebusin</div>
+    <div class="splash-sub">Selamatkan makanan,<br>hemat pengeluaranmu 🌱</div>
+  </div>
+
+  <!-- ===== LOGIN ===== -->
+  <div id="login" class="screen">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 28px;">
+      <div class="login-header">
+        <div style="text-align:center;margin-bottom:12px;">
+          <img src="logo.jpeg" alt="Tebusin Logo" class="splash-logo-img">
+        </div>
+        <div class="login-title">Masuk ke Tebusin</div>
+        <div class="login-sub">Selamatkan makanan, hemat pengeluaran</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="usn-input" type="text" placeholder="Masukkan username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="pw-input" type="password" placeholder="Masukkan password">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()">Masuk</button>
+      <div class="login-hint">
+        <b>Demo Customer:</b> customer / tebusin123<br>
+        <b>Demo Resto:</b> warungbukhari / resto123
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= -->
+  <!-- ===== CUSTOMER SCREENS ====== -->
+  <!-- ============================= -->
+
+  <!-- HOME CUSTOMER -->
+  <div id="c-home" class="screen">
+    <div class="scroll-content">
+      <div class="home-header">
+        <div class="home-greeting">Halo, selamat datang 👋</div>
+        <div class="home-name">Yaspis Sal Paradi</div>
+        <div class="home-location" onclick="showLocationModal()">
+          📍 <span id="current-location">Darussalam, Banda Aceh</span> ▾
+        </div>
+        <div class="home-coin-card">
+          <div>
+            <div class="home-coin-val">🪙 12.500</div>
+            <div class="home-coin-label">Koin Tebusin kamu</div>
+          </div>
+          <button class="banner-cta" style="color:var(--green);" onclick="goTo('c-koin')">Lihat</button>
+        </div>
+      </div>
+
+      <!-- Eco Impact Mini -->
+      <div class="eco-banner" onclick="goTo('c-impact')">
+        <div class="eco-icon">🌍</div>
+        <div class="eco-stats">
+          <div class="eco-title">Dampak Lingkunganmu ›</div>
+          <div class="eco-stats-row">
+            <div class="eco-stat">
+              <div class="eco-stat-val">2.4 kg</div>
+              <div class="eco-stat-label">Makanan diselamatkan</div>
+            </div>
+            <div class="eco-stat">
+              <div class="eco-stat-val">1.2 kg</div>
+              <div class="eco-stat-label">CO₂ dihemat</div>
+            </div>
+            <div class="eco-stat">
+              <div class="eco-stat-val">6</div>
+              <div class="eco-stat-label">Bag dibeli</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-bar" style="margin-top:12px;">
+        <span>🔍</span>
+        <input placeholder="Cari resto atau makanan..." id="search-input" oninput="filterResto()">
+      </div>
+      <div class="chip-row" style="margin-top:10px;">
+        <div class="chip active" onclick="filterChip(this,'Semua')">Semua</div>
+        <div class="chip" onclick="filterChip(this,'Makanan Berat')">Makanan Berat</div>
+        <div class="chip" onclick="filterChip(this,'Minuman')">Minuman</div>
+        <div class="chip" onclick="filterChip(this,'Dessert')">Dessert</div>
+        <div class="chip" onclick="filterChip(this,'Snack')">Snack</div>
+      </div>
+      <div class="banner-wrap">
+        <div class="banner">
+          <div class="banner-text">🎉 Promo Kampus!<br>Gratis Rp5.000 untuk order pertama</div>
+          <button class="banner-cta" onclick="showToast('Voucher KAMPUS5K diklaim! 🎉')">Klaim</button>
+        </div>
+      </div>
+      <div class="section-title">Tersedia Sekarang 🔥</div>
+      <div class="resto-list">
+        <div class="resto-card" onclick="goTo('c-detail')">
+          <div class="resto-img">🍛</div>
+          <div class="resto-info">
+            <div class="resto-name">Warung Makan Bu Khari</div>
+            <div class="resto-meta">
+              <span class="resto-rating">⭐ 4.8</span>
+              <span class="resto-cat">• Rumah Makan</span>
+              <span style="font-size:11px;color:var(--text-muted);">• 0.3 km</span>
+            </div>
+            <div class="tag-row">
+              <span class="tag">3 bag tersedia</span>
+              <span class="tag">Mulai Rp15.000</span>
+              <span class="tag" style="background:#E8F5E9;color:#1B5E20;">🌱 Hemat 0.4kg CO₂/bag</span>
+            </div>
+            <div class="resto-bottom">
+              <span class="bag-tag">🛍️ Surprise Bag</span>
+              <span class="pickup-tag">🕐 17.00–19.00</span>
+            </div>
+          </div>
+        </div>
+        <div class="resto-card" onclick="showToast('Stok habis saat ini 😢')">
+          <div class="resto-img">☕</div>
+          <div class="resto-info">
+            <div class="resto-name">Kopi Kenangan Senja</div>
+            <div class="resto-meta">
+              <span class="resto-rating">⭐ 4.6</span>
+              <span class="resto-cat">• Kafe & Minuman</span>
+              <span style="font-size:11px;color:var(--text-muted);">• 0.7 km</span>
+            </div>
+            <div class="tag-row">
+              <span class="tag" style="background:#fce4e4;color:var(--danger)">Stok Habis</span>
+              <span class="tag">Mulai Rp20.000</span>
+            </div>
+            <div class="resto-bottom">
+              <span class="bag-tag">🛍️ Surprise Bag</span>
+              <span class="pickup-tag">🕐 20.00–22.00</span>
+            </div>
+          </div>
+        </div>
+        <div class="resto-card" onclick="showToast('Fitur detail tersedia untuk demo di Warung Bu Khari 😊')">
+          <div class="resto-img">🍜</div>
+          <div class="resto-info">
+            <div class="resto-name">Bakso Malang Pak Diran</div>
+            <div class="resto-meta">
+              <span class="resto-rating">⭐ 4.7</span>
+              <span class="resto-cat">• Bakso & Mie</span>
+              <span style="font-size:11px;color:var(--text-muted);">• 1.2 km</span>
+            </div>
+            <div class="tag-row">
+              <span class="tag">5 bag tersedia</span>
+              <span class="tag">Mulai Rp20.000</span>
+              <span class="tag" style="background:#E8F5E9;color:#1B5E20;">🌱 Hemat 0.5kg CO₂/bag</span>
+            </div>
+            <div class="resto-bottom">
+              <span class="bag-tag">🛍️ Surprise Bag</span>
+              <span class="pickup-tag">🕐 20.00–21.30</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item active" id="nav-home" onclick="setActiveNav('nav-home')"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="nav-item" id="nav-pesanan" onclick="goTo('c-riwayat');setActiveNav('nav-pesanan')"><span class="nav-icon">📋</span><span class="nav-label">Pesanan</span></button>
+      <button class="nav-item" id="nav-koin" onclick="goTo('c-koin');setActiveNav('nav-koin')"><span class="nav-icon">🪙</span><span class="nav-label">Koin</span></button>
+      <button class="nav-item" id="nav-profil" onclick="goTo('c-profil');setActiveNav('nav-profil')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- LOCATION MODAL -->
+  <div class="modal-overlay" id="location-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">📍 Pilih Lokasi</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Pilih lokasi untuk mencari toko terdekat</div>
+      <div class="location-list">
+        <div class="location-opt" onclick="setLocation('Darussalam, Banda Aceh')">
+          <span class="location-opt-icon">📍</span>
+          <span class="location-opt-text">Darussalam, Banda Aceh</span>
+          <span class="location-opt-dist">Lokasi saat ini</span>
+        </div>
+        <div class="location-opt" onclick="setLocation('Syiah Kuala, Banda Aceh')">
+          <span class="location-opt-icon">🏠</span>
+          <span class="location-opt-text">Syiah Kuala, Banda Aceh</span>
+          <span class="location-opt-dist">1.2 km</span>
+        </div>
+        <div class="location-opt" onclick="setLocation('Ulee Kareng, Banda Aceh')">
+          <span class="location-opt-icon">🏫</span>
+          <span class="location-opt-text">Ulee Kareng, Banda Aceh</span>
+          <span class="location-opt-dist">2.5 km</span>
+        </div>
+        <div class="location-opt" onclick="setLocation('Kuta Alam, Banda Aceh')">
+          <span class="location-opt-icon">🏪</span>
+          <span class="location-opt-text">Kuta Alam, Banda Aceh</span>
+          <span class="location-opt-dist">3.8 km</span>
+        </div>
+      </div>
+      <button class="btn btn-outline" style="margin-top:16px;" onclick="closeModal('location-modal')">Batal</button>
+    </div>
+  </div>
+
+  <!-- DETAIL RESTO -->
+  <div id="c-detail" class="screen">
+    <div class="scroll-content">
+      <div class="detail-hero">🍛</div>
+      <div style="position:relative;">
+        <button class="topbar-back" style="position:absolute;top:12px;left:12px;z-index:10;" onclick="goBack()">←</button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-name">Warung Makan Bu Khari</div>
+        <div class="detail-row"><b>⭐ 4.8</b> &nbsp;(128 ulasan) • Masakan Rumah</div>
+        <div class="detail-row">📍 Jl. Teuku Umar No. 14 • 0.3 km dari kamu</div>
+        <div class="tag-row" style="margin-top:8px;">
+          <span class="tag">Bersertifikat Halal</span>
+          <span class="tag">Top Seller</span>
+          <span class="tag">Rating Tinggi</span>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;">Pilih Surprise Bag</div>
+        <div class="info-box">🛍️ <b>Surprise Bag</b> — makanan sisa hari ini yang masih layak & lezat, minimal 70% lebih murah dari harga asli!</div>
+
+        <div class="bag-option selected" onclick="selectBag(this,15000,50000,3)">
+          <div class="bag-option-top">
+            <div>
+              <div class="bag-price">Rp 15.000</div>
+              <div class="bag-ori">Harga asli ~Rp 50.000</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="bag-save">Hemat ~70%</div>
+              <div style="font-size:20px;">🛍️</div>
+            </div>
+          </div>
+          <div class="bag-desc">Cocok untuk 1 porsi. Bisa berisi nasi + lauk kejutan.</div>
+          <div class="qty-row">
+            <div>
+              <div class="qty-label">Jumlah</div>
+              <div class="qty-stock" id="stock-a">Stok tersisa: 3</div>
+            </div>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="event.stopPropagation();changeQty(-1)">−</button>
+              <div class="qty-val" id="qty-display">1</div>
+              <button class="qty-btn" onclick="event.stopPropagation();changeQty(1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bag-option" onclick="selectBag(this,20000,65000,1)">
+          <div class="bag-option-top">
+            <div>
+              <div class="bag-price">Rp 20.000</div>
+              <div class="bag-ori">Harga asli ~Rp 65.000</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="bag-save">Hemat ~70%</div>
+              <div style="font-size:20px;">🛍️</div>
+            </div>
+          </div>
+          <div class="bag-desc">Porsi lebih besar + kemungkinan dapat minuman.</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Stok tersisa: 1</div>
+        </div>
+
+        <div class="bag-option" onclick="selectBag(this,25000,85000,2)">
+          <div class="bag-option-top">
+            <div>
+              <div class="bag-price">Rp 25.000</div>
+              <div class="bag-ori">Harga asli ~Rp 85.000</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="bag-save">Hemat ~70%</div>
+              <div style="font-size:20px;">🛍️</div>
+            </div>
+          </div>
+          <div class="bag-desc">Paket keluarga kecil. 2–3 item makanan surprise.</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Stok tersisa: 2</div>
+        </div>
+
+        <!-- Eco Impact -->
+        <div class="eco-impact-box" id="eco-impact-box">
+          <div class="eco-impact-icon">🌿</div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:6px;">Dampak Pembelian Ini</div>
+            <div class="eco-impact-stats">
+              <div class="eco-impact-item">
+                <div class="eco-impact-val" id="eco-co2">0.4 kg</div>
+                <div class="eco-impact-label">CO₂ dihemat</div>
+              </div>
+              <div class="eco-impact-item">
+                <div class="eco-impact-val" id="eco-food">0.8 kg</div>
+                <div class="eco-impact-label">Makanan diselamatkan</div>
+              </div>
+              <div class="eco-impact-item">
+                <div class="eco-impact-val" id="eco-water">120 L</div>
+                <div class="eco-impact-label">Air dihemat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pickup-box" style="margin-top:14px;">
+          <div class="pickup-box-title">⏰ Waktu Pickup</div>
+          <div class="pickup-box-time">17.00 – 19.00 WIB</div>
+          <div class="pickup-box-warn">⚠️ Wajib hadir sesuai jam pickup. Lewat waktu = hangus.</div>
+        </div>
+        <button class="btn btn-primary" onclick="goToCheckout()">
+          Lanjut Checkout — Rp <span id="selected-price-display">15.000</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT -->
+  <div id="c-checkout" class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goBack()">←</button>
+      <div class="topbar-title">Checkout</div>
+    </div>
+    <div class="scroll-content" style="padding:16px 20px 100px;">
+
+      <!-- Order summary header -->
+      <div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">🛍️ Detail Pesanan</div>
+        <div class="order-row"><span>Warung Makan Bu Khari</span><span></span></div>
+        <div class="order-row"><span style="color:var(--text-muted);">Surprise Bag × <span id="co-qty">1</span></span><span id="co-subtotal" style="font-weight:600;">Rp 15.000</span></div>
+        <div class="order-row"><span style="color:var(--text-muted);font-size:12px;">⏰ Pickup 17.00–19.00</span><span></span></div>
+      </div>
+
+      <!-- Eco impact checkout -->
+      <div class="eco-impact-box" style="margin-bottom:12px;">
+        <div class="eco-impact-icon">🌱</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px;">Dampak Pembelianmu</div>
+          <div class="eco-impact-stats">
+            <div class="eco-impact-item">
+              <div class="eco-impact-val" id="co-co2">0.4 kg</div>
+              <div class="eco-impact-label">CO₂ dihemat</div>
+            </div>
+            <div class="eco-impact-item">
+              <div class="eco-impact-val" id="co-food">0.8 kg</div>
+              <div class="eco-impact-label">Makanan selamat</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Voucher -->
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px;">🎟️ Voucher</div>
+      <div class="voucher-input-row">
+        <input type="text" id="voucher-code-input" placeholder="Masukkan kode voucher">
+        <button onclick="applyVoucher()">Pakai</button>
+      </div>
+      <div id="voucher-active-display" style="display:none;background:var(--green-pale);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--green);font-weight:600;margin-bottom:10px;display:none;justify-content:space-between;align-items:center;">
+        <span>✅ Voucher <span id="voucher-name-display"></span> aktif</span>
+        <button onclick="removeVoucher()" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;">×</button>
+      </div>
+
+      <!-- Koin -->
+      <div style="font-size:14px;font-weight:700;margin:12px 0 8px;">🪙 Gunakan Koin</div>
+      <div class="discount-box" id="koin-toggle" onclick="toggleKoin()">
+        <div>
+          <div>Pakai Koin Tebusin</div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:400;margin-top:2px;">Saldo: 12.500 Koin = Rp 12.500</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="koin-amount-label" style="font-size:12px;color:var(--orange);font-weight:700;"></span>
+          <div class="toggle-switch" id="koin-switch"></div>
+        </div>
+      </div>
+      <div id="koin-slider-row" style="display:none;background:var(--white);border-radius:12px;padding:12px 14px;margin-top:-6px;margin-bottom:10px;box-shadow:var(--shadow);">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+          <span>0 Koin</span><span>Maks: <span id="koin-max-label">12.500</span> Koin</span>
+        </div>
+        <input type="range" id="koin-range" min="0" max="12500" step="500" value="2000"
+          oninput="updateKoinSlider()"
+          style="width:100%;accent-color:var(--green);">
+        <div style="text-align:center;font-size:14px;font-weight:700;color:var(--green);margin-top:6px;">
+          Pakai <span id="koin-range-val">2.000</span> Koin = hemat Rp <span id="koin-rp-val">2.000</span>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="summary-box">
+        <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Ringkasan Pembayaran</div>
+        <div class="summary-row"><span>Harga Bag × <span id="sum-qty">1</span></span><span id="sum-harga">Rp 15.000</span></div>
+        <div class="summary-row"><span>Biaya Layanan</span><span>Rp 1.000</span></div>
+        <div class="summary-row discount" id="sum-row-voucher" style="display:none;"><span>Voucher <span id="sum-voucher-label"></span></span><span id="sum-voucher-val">− Rp 5.000</span></div>
+        <div class="summary-row koin-row" id="sum-row-koin" style="display:none;"><span>Koin dipakai</span><span id="sum-koin-val">− Rp 2.000</span></div>
+        <div class="summary-row total"><span>Total Bayar</span><span id="sum-total">Rp 16.000</span></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="doBayar()">Bayar Sekarang — <span id="bayar-btn-total">Rp 16.000</span></button>
+    </div>
+  </div>
+
+  <!-- QR CODE -->
+  <div id="c-qr" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Tiket Pickup</div>
+    </div>
+    <div class="qr-screen-content">
+      <div class="qr-box">
+        <div style="font-size:14px;font-weight:700;color:var(--text);">Tunjukkan QR ini ke kasir</div>
+        <div class="qr-code">
+          <div class="qr-pattern"></div>
+          <div class="qr-corner tl"></div>
+          <div class="qr-corner tr"></div>
+          <div class="qr-corner bl"></div>
+          <div class="qr-center">🛍️</div>
+        </div>
+        <div class="qr-code-text">TBN-4829</div>
+        <div class="qr-label">Kode cadangan (jika QR bermasalah)</div>
+      </div>
+      <div class="order-detail">
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Detail Pesanan</div>
+        <div class="order-row"><span>Resto</span><span style="font-weight:600;">Warung Bu Khari</span></div>
+        <div class="order-row"><span>Bag</span><span id="qr-bag-info">Surprise Bag Rp15.000 ×1</span></div>
+        <div class="order-row"><span>Biaya Layanan</span><span>Rp 1.000</span></div>
+        <div class="order-row" id="qr-row-voucher" style="display:none;color:var(--orange);"><span>Voucher</span><span id="qr-voucher-val">−Rp 5.000</span></div>
+        <div class="order-row" id="qr-row-koin" style="display:none;color:var(--green);"><span>Koin</span><span id="qr-koin-val">−Rp 2.000</span></div>
+        <div class="order-row total"><span>Total Bayar</span><span id="qr-total-price" style="color:var(--green);">Rp 16.000</span></div>
+        <div class="order-row" style="margin-top:8px;"><span>⏰ Pickup</span><span style="color:var(--orange);font-weight:600;">17.00–19.00 WIB</span></div>
+        <div class="order-row"><span>📍 Lokasi</span><span>Jl. Teuku Umar No.14</span></div>
+      </div>
+      <div class="qr-info">⚠️ <b>Penting:</b> Tunjukkan QR atau kode cadangan ke pihak resto saat pickup. Pesanan <b>hangus otomatis</b> jika tidak diambil sesuai jam yang ditentukan.</div>
+      <button class="btn btn-primary" onclick="goTo('c-rating')">Selesai Pickup ✅</button>
+    </div>
+  </div>
+
+  <!-- RATING -->
+  <div id="c-rating" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Beri Ulasan</div>
+    </div>
+    <div class="rating-screen">
+      <div style="text-align:center;padding:8px 0 16px;">
+        <div style="font-size:36px;">🍱</div>
+        <div style="font-size:16px;font-weight:700;margin-top:8px;">Bagaimana pengalamanmu?</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">Warung Makan Bu Khari</div>
+      </div>
+      <div class="rating-stars" id="stars">
+        <span class="star active" onclick="setStar(1)">⭐</span>
+        <span class="star active" onclick="setStar(2)">⭐</span>
+        <span class="star active" onclick="setStar(3)">⭐</span>
+        <span class="star active" onclick="setStar(4)">⭐</span>
+        <span class="star" onclick="setStar(5)">⭐</span>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Ceritakan pengalamanmu</div>
+      <textarea class="rating-textarea" id="review-text" placeholder="Makanannya enak dan porsinya lumayan banyak..."></textarea>
+      <div class="coin-reward" id="coin-reward-info">📝 Review teks = +10 Koin Tebusin</div>
+      <div class="upload-box" onclick="togglePhoto()">
+        <div style="font-size:28px;" id="upload-icon">📷</div>
+        <div style="font-size:13px;font-weight:600;margin-top:6px;" id="upload-text">Tambah Foto (opsional)</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Review dengan foto = +30 Koin</div>
+      </div>
+      <div id="photo-preview" style="display:none;text-align:center;margin-bottom:10px;">
+        <div style="width:100%;height:120px;background:linear-gradient(135deg,#e8f5e9,#fff3e0);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px;">🍱</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">foto_makanan.jpg</div>
+      </div>
+      <button class="btn btn-primary" onclick="submitRating()">Kirim Ulasan</button>
+    </div>
+  </div>
+
+  <!-- RIWAYAT -->
+  <div id="c-riwayat" class="screen">
+    <div class="topbar">
+      <div class="topbar-logo">Tebusin</div>
+      <div class="topbar-title" style="text-align:right;">Pesanan Saya</div>
+    </div>
+    <div class="scroll-content" style="padding:16px 20px;">
+      <div class="history-card">
+        <div class="history-top">
+          <div class="history-name">🍛 Warung Makan Bu Khari</div>
+          <div class="status-badge status-done">Selesai ✓</div>
+        </div>
+        <div class="history-meta">Surprise Bag Rp15.000 ×1 • Hari ini, 17.30</div>
+        <div class="eco-impact-box" style="margin:8px 0;padding:8px 12px;">
+          <div style="font-size:16px;">🌱</div>
+          <div style="font-size:12px;color:var(--green);">Hemat <b>0.4 kg CO₂</b> • Selamatkan <b>0.8 kg</b> makanan</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="history-price">Rp 16.000</div>
+          <button class="btn btn-sm btn-outline" onclick="goTo('c-rating')">Beri Rating</button>
+        </div>
+      </div>
+      <div class="history-card">
+        <div class="history-top">
+          <div class="history-name">☕ Kopi Kenangan Senja</div>
+          <div class="status-badge status-waiting">Menunggu Pickup</div>
+        </div>
+        <div class="history-meta">Surprise Bag Rp20.000 ×1 • Hari ini, 20.00–22.00</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <div class="history-price">Rp 21.000</div>
+          <button class="btn btn-sm btn-orange" onclick="goTo('c-qr')">Lihat QR</button>
+        </div>
+      </div>
+      <div class="history-card">
+        <div class="history-top">
+          <div class="history-name">🍜 Bakso Malang Pak Diran</div>
+          <div class="status-badge status-expired">Hangus</div>
+        </div>
+        <div class="history-meta">Surprise Bag Rp20.000 ×1 • Kemarin, 20.00</div>
+        <div class="history-price">Rp 21.000</div>
+      </div>
+      <div class="history-card">
+        <div class="history-top">
+          <div class="history-name">🍛 Warung Makan Bu Khari</div>
+          <div class="status-badge status-done">Selesai ✓</div>
+        </div>
+        <div class="history-meta">Surprise Bag Rp25.000 ×2 • 14 Jun 2025</div>
+        <div class="eco-impact-box" style="margin:8px 0;padding:8px 12px;">
+          <div style="font-size:16px;">🌱</div>
+          <div style="font-size:12px;color:var(--green);">Hemat <b>1.0 kg CO₂</b> • Selamatkan <b>2.0 kg</b> makanan</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="history-price">Rp 52.000</div>
+          <div style="font-size:12px;color:var(--text-muted);">Sudah dirating ⭐⭐⭐⭐⭐</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goTo('c-home');setActiveNav('nav-home')"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="nav-item active" id="nav-pesanan2"><span class="nav-icon">📋</span><span class="nav-label">Pesanan</span></button>
+      <button class="nav-item" onclick="goTo('c-koin');setActiveNav('nav-koin')"><span class="nav-icon">🪙</span><span class="nav-label">Koin</span></button>
+      <button class="nav-item" onclick="goTo('c-profil');setActiveNav('nav-profil')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- KOIN & VOUCHER -->
+  <div id="c-koin" class="screen">
+    <div class="scroll-content">
+      <div class="coin-hero">
+        <div style="font-size:13px;opacity:0.85;">Saldo Koin Tebusin kamu</div>
+        <div class="coin-hero-val">🪙 12.500</div>
+        <div class="coin-hero-label">1 Koin = Rp 1 • Hanya untuk pembelian</div>
+      </div>
+      <div class="section-title" style="padding-bottom:4px;">Voucher Aktif 🎟️</div>
+      <div class="voucher-card">
+        <div class="voucher-stripe"></div>
+        <div class="voucher-body">
+          <div class="voucher-name">Promo Kampus — Rp 5.000</div>
+          <div class="voucher-code">KAMPUS5K</div>
+          <div class="voucher-exp">⏳ Berlaku s/d 30 Jun 2025</div>
+        </div>
+        <button class="voucher-btn" onclick="showToast('Voucher KAMPUS5K siap dipakai saat checkout!')">Pakai</button>
+      </div>
+      <div class="voucher-card">
+        <div class="voucher-stripe" style="background:linear-gradient(180deg,var(--orange),var(--orange-light))"></div>
+        <div class="voucher-body">
+          <div class="voucher-name">Referral Bonus — Rp 2.000</div>
+          <div class="voucher-code">REF-YASPIS</div>
+          <div class="voucher-exp">⏳ Berlaku s/d 20 Jun 2025</div>
+        </div>
+        <button class="voucher-btn" onclick="showToast('Voucher Referral siap dipakai!')">Pakai</button>
+      </div>
+      <div class="section-title" style="padding-bottom:4px;">Riwayat Koin</div>
+      <div class="coin-history">
+        <div class="coin-item">
+          <div><div class="coin-item-label">📝 Review dengan Foto</div><div class="coin-item-date">Hari ini • Warung Bu Khari</div></div>
+          <div class="coin-plus">+30</div>
+        </div>
+        <div class="coin-item">
+          <div><div class="coin-item-label">👥 Bonus Referral (kamu diundang)</div><div class="coin-item-date">14 Jun 2025</div></div>
+          <div class="coin-plus">+2.000</div>
+        </div>
+        <div class="coin-item">
+          <div><div class="coin-item-label">📝 Review Teks</div><div class="coin-item-date">14 Jun 2025 • Warung Bu Khari</div></div>
+          <div class="coin-plus">+10</div>
+        </div>
+        <div class="coin-item">
+          <div><div class="coin-item-label">🛍️ Dipakai untuk pembelian</div><div class="coin-item-date">12 Jun 2025</div></div>
+          <div class="coin-minus">-2.000</div>
+        </div>
+        <div class="coin-item">
+          <div><div class="coin-item-label">👥 Bonus Referral (kamu mengundang)</div><div class="coin-item-date">10 Jun 2025</div></div>
+          <div class="coin-plus">+2.000</div>
+        </div>
+      </div>
+      <div style="height:80px;"></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goTo('c-home');setActiveNav('nav-home')"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="nav-item" onclick="goTo('c-riwayat')"><span class="nav-icon">📋</span><span class="nav-label">Pesanan</span></button>
+      <button class="nav-item active"><span class="nav-icon">🪙</span><span class="nav-label">Koin</span></button>
+      <button class="nav-item" onclick="goTo('c-profil')"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- PROFIL CUSTOMER -->
+  <div id="c-profil" class="screen">
+    <div class="scroll-content">
+      <div class="profile-header">
+        <div class="avatar">👤</div>
+        <div>
+          <div class="profile-name">Yaspis Sal Paradi</div>
+          <div class="profile-email">yaspis@email.com</div>
+          <div style="font-size:12px;margin-top:4px;opacity:0.8;">🪙 12.500 Koin &nbsp;•&nbsp; 📍 Darussalam, Banda Aceh</div>
+        </div>
+      </div>
+      <div class="referral-box">
+        <div class="referral-title">🎁 Kode Referral Kamu</div>
+        <div class="referral-desc">Ajak teman pakai Tebusin — kamu & temanmu masing-masing dapat 2.000 Koin!</div>
+        <div class="referral-code">
+          <div class="referral-code-text">YASPIS22</div>
+          <button class="banner-cta" style="background:var(--green);color:white;" onclick="showToast('Kode referral disalin! 📋')">Salin</button>
+        </div>
+      </div>
+      <div class="profile-menu">
+        <div class="menu-item" onclick="showToast('Fitur edit profil segera hadir!')">
+          <span class="menu-icon">✏️</span><span class="menu-text">Edit Profil</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showLocationModal()">
+          <span class="menu-icon">📍</span><span class="menu-text">Ubah Lokasi</span>
+          <span style="font-size:12px;color:var(--text-muted);margin-right:6px;">Darussalam</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="goTo('c-impact')">
+          <span class="menu-icon">🌍</span><span class="menu-text">Dampak Lingkunganku</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="goTo('c-riwayat')">
+          <span class="menu-icon">📋</span><span class="menu-text">Riwayat Pesanan</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="goTo('c-koin')">
+          <span class="menu-icon">🪙</span><span class="menu-text">Koin & Voucher</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Notifikasi aktif ✅')">
+          <span class="menu-icon">🔔</span><span class="menu-text">Notifikasi</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Pusat bantuan segera hadir!')">
+          <span class="menu-icon">❓</span><span class="menu-text">Pusat Bantuan</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Syarat & Ketentuan Tebusin')">
+          <span class="menu-icon">📄</span><span class="menu-text">Syarat & Ketentuan</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="doLogout()">
+          <span class="menu-icon">🚪</span><span class="menu-text" style="color:var(--danger);">Keluar</span>
+        </div>
+      </div>
+      <div style="height:20px;"></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="goTo('c-home');setActiveNav('nav-home')"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="nav-item" onclick="goTo('c-riwayat')"><span class="nav-icon">📋</span><span class="nav-label">Pesanan</span></button>
+      <button class="nav-item" onclick="goTo('c-koin')"><span class="nav-icon">🪙</span><span class="nav-label">Koin</span></button>
+      <button class="nav-item active"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- ECO IMPACT -->
+  <div id="c-impact" class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goBack()">←</button>
+      <div class="topbar-title">Dampak Lingkunganku 🌍</div>
+    </div>
+    <div class="scroll-content">
+      <div class="impact-hero">
+        <div style="font-size:13px;opacity:0.85;">Total makanan yang kamu selamatkan</div>
+        <div class="impact-big">2.4 kg</div>
+        <div class="impact-sub">Setara 6 bag yang berhasil diselamatkan dari tempat sampah 🎉</div>
+      </div>
+      <div class="impact-grid">
+        <div class="impact-card">
+          <div class="impact-card-icon">💨</div>
+          <div class="impact-card-val">1.2 kg</div>
+          <div class="impact-card-label">CO₂ dihemat</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-card-icon">💧</div>
+          <div class="impact-card-val">720 L</div>
+          <div class="impact-card-label">Air dihemat</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-card-icon">🛍️</div>
+          <div class="impact-card-val">6 bag</div>
+          <div class="impact-card-label">Total bag dibeli</div>
+        </div>
+        <div class="impact-card">
+          <div class="impact-card-icon">🌳</div>
+          <div class="impact-card-val">0.06</div>
+          <div class="impact-card-label">Pohon setara CO₂</div>
+        </div>
+      </div>
+      <div class="section-title">🏆 Leaderboard Penyelamat Makanan</div>
+      <div style="font-size:12px;color:var(--text-muted);padding:0 20px 8px;">Peringkat berdasarkan total bag diselamatkan bulan ini</div>
+      <div class="leaderboard-item">
+        <div class="lb-rank">🥇</div>
+        <div class="lb-avatar">🧑</div>
+        <div class="lb-name">Reza F.</div>
+        <div class="lb-bags">24 bag • 9.6 kg CO₂</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="lb-rank">🥈</div>
+        <div class="lb-avatar">👩</div>
+        <div class="lb-name">Siti N.</div>
+        <div class="lb-bags">18 bag • 7.2 kg CO₂</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="lb-rank">🥉</div>
+        <div class="lb-avatar">🧑</div>
+        <div class="lb-name">Budi H.</div>
+        <div class="lb-bags">14 bag • 5.6 kg CO₂</div>
+      </div>
+      <div class="leaderboard-item lb-me">
+        <div class="lb-rank" style="color:var(--green);">#8</div>
+        <div class="lb-avatar" style="background:var(--green);color:white;font-size:14px;">AP</div>
+        <div class="lb-name" style="color:var(--green);font-weight:700;">YASPIS</div>
+        <div class="lb-bags">6 bag • 2.4 kg CO₂</div>
+      </div>
+      <div class="leaderboard-item">
+        <div class="lb-rank">#9</div>
+        <div class="lb-avatar">👩</div>
+        <div class="lb-name">Lina M.</div>
+        <div class="lb-bags">5 bag • 2.0 kg CO₂</div>
+      </div>
+      <div style="background:var(--orange-pale);border-radius:14px;margin:16px 20px;padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:var(--orange);">💡 Tantangan Bulan Ini</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.6;">Beli <b>10 Surprise Bag</b> bulan ini dan dapatkan badge <b>🌟 Green Hero</b> + bonus <b>5.000 Koin</b>!</div>
+        <div style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="font-weight:600;">Progress: 6/10 bag</span><span style="color:var(--orange);">60%</span>
+          </div>
+          <div style="background:var(--border);border-radius:10px;height:8px;">
+            <div style="background:linear-gradient(90deg,var(--orange),var(--orange-light));width:60%;height:8px;border-radius:10px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- ========================== -->
+  <!-- ===== RESTO SCREENS ====== -->
+  <!-- ========================== -->
+
+  <!-- HOME RESTO -->
+  <div id="r-home" class="screen">
+    <div class="scroll-content">
+      <div class="resto-home-header">
+        <div style="font-size:13px;opacity:0.85;">Selamat datang kembali 👋</div>
+        <div style="font-size:20px;font-weight:800;">Warung Makan Bu Khari</div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-val">3</div><div class="stat-label">Bag Tersisa</div></div>
+          <div class="stat-card"><div class="stat-val">7</div><div class="stat-label">Terjual Hari Ini</div></div>
+          <div class="stat-card"><div class="stat-val">⭐4.8</div><div class="stat-label">Rating</div></div>
+        </div>
+      </div>
+
+      <!-- Eco Impact Resto -->
+      <div style="background:linear-gradient(135deg,#1B5E20,#2D7A4F);margin:16px 20px 0;border-radius:14px;padding:14px;color:white;">
+        <div style="font-size:12px;opacity:0.85;margin-bottom:6px;">🌍 Dampak Lingkungan Resto Kamu</div>
+        <div style="display:flex;gap:16px;">
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:800;">42 kg</div>
+            <div style="font-size:10px;opacity:0.8;">Makanan diselamatkan</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:800;">21 kg</div>
+            <div style="font-size:10px;opacity:0.8;">CO₂ dihemat</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:800;">105</div>
+            <div style="font-size:10px;opacity:0.8;">Bag dijual total</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Stok Aktif Hari Ini</div>
+      <div style="padding:0 20px;">
+        <div class="stok-item">
+          <div class="stok-emoji">🛍️</div>
+          <div class="stok-info">
+            <div class="stok-name">Surprise Bag Rp 15.000</div>
+            <div class="stok-price">Fee: Rp 2.250 / bag</div>
+          </div>
+          <div class="stok-counter">
+            <button class="counter-btn" onclick="changeStok('s1',-1)">−</button>
+            <div class="counter-val" id="s1">2</div>
+            <button class="counter-btn" onclick="changeStok('s1',1)">+</button>
+          </div>
+        </div>
+        <div class="stok-item">
+          <div class="stok-emoji">🛍️</div>
+          <div class="stok-info">
+            <div class="stok-name">Surprise Bag Rp 20.000</div>
+            <div class="stok-price">Fee: Rp 3.000 / bag</div>
+          </div>
+          <div class="stok-counter">
+            <button class="counter-btn" onclick="changeStok('s2',-1)">−</button>
+            <div class="counter-val" id="s2">1</div>
+            <button class="counter-btn" onclick="changeStok('s2',1)">+</button>
+          </div>
+        </div>
+        <button class="btn btn-orange" style="margin-top:8px;" onclick="showToast('Stok berhasil diperbarui ✅')">Simpan Perubahan Stok</button>
+      </div>
+      <div class="section-title">Ulasan Terbaru</div>
+      <div style="padding:0 20px 80px;">
+        <div style="background:var(--white);border-radius:14px;padding:14px;box-shadow:var(--shadow);margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;">
+            <div style="font-size:13px;font-weight:700;">YASPIS</div>
+            <div style="font-size:12px;color:var(--orange);">⭐⭐⭐⭐⭐</div>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Porsinya banyak banget, worth it! Dapat ayam goreng + tempe + nasi. Puas!</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">📷 Dengan foto • Hari ini</div>
+        </div>
+        <div style="background:var(--white);border-radius:14px;padding:14px;box-shadow:var(--shadow);">
+          <div style="display:flex;justify-content:space-between;">
+            <div style="font-size:13px;font-weight:700;">Siti R.</div>
+            <div style="font-size:12px;color:var(--orange);">⭐⭐⭐⭐</div>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Enak dan murah! Tapi agak lama nunggunya. Overall oke sih 😊</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">📝 Teks saja • Kemarin</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="resto-nav-item active" onclick="setRestoNav(this)"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-stok');setRestoNav(this)"><span class="nav-icon">📦</span><span class="nav-label">Stok</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-scan');setRestoNav(this)"><span class="nav-icon">📷</span><span class="nav-label">Scan</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-transaksi');setRestoNav(this)"><span class="nav-icon">🧾</span><span class="nav-label">Transaksi</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-profil');setRestoNav(this)"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- STOK RESTO -->
+  <div id="r-stok" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Atur Stok Bag</div>
+      <button class="btn btn-sm btn-orange" onclick="showToast('Stok disimpan ✅')">Simpan</button>
+    </div>
+    <div class="scroll-content" style="padding:16px 20px;">
+      <div class="info-box">ℹ️ Stok yang kamu atur akan <b>tampil ke customer</b>. Resto wajib memberikan value <b>minimal 70%</b> dari harga normal. Pastikan makanan yang disediakan <b>layak konsumsi</b> sesuai SOP Tebusin.</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Stok Bag Aktif</div>
+      <div class="stok-item">
+        <div class="stok-emoji">🛍️</div>
+        <div class="stok-info">
+          <div class="stok-name">Surprise Bag Rp 15.000</div>
+          <div class="stok-price">Harga asli wajib ≥ Rp 50.000</div>
+        </div>
+        <div class="stok-counter">
+          <button class="counter-btn" onclick="changeStok('stok-a',-1)">−</button>
+          <div class="counter-val" id="stok-a">2</div>
+          <button class="counter-btn" onclick="changeStok('stok-a',1)">+</button>
+        </div>
+      </div>
+      <div class="stok-item">
+        <div class="stok-emoji">🛍️</div>
+        <div class="stok-info">
+          <div class="stok-name">Surprise Bag Rp 20.000</div>
+          <div class="stok-price">Harga asli wajib ≥ Rp 67.000</div>
+        </div>
+        <div class="stok-counter">
+          <button class="counter-btn" onclick="changeStok('stok-b',-1)">−</button>
+          <div class="counter-val" id="stok-b">1</div>
+          <button class="counter-btn" onclick="changeStok('stok-b',1)">+</button>
+        </div>
+      </div>
+      <div class="stok-item" style="opacity:0.6;">
+        <div class="stok-emoji">🛍️</div>
+        <div class="stok-info">
+          <div class="stok-name">Surprise Bag Rp 25.000</div>
+          <div class="stok-price">Harga asli wajib ≥ Rp 84.000</div>
+        </div>
+        <div class="stok-counter">
+          <button class="counter-btn" onclick="changeStok('stok-c',-1)">−</button>
+          <div class="counter-val" id="stok-c">0</div>
+          <button class="counter-btn" onclick="changeStok('stok-c',1)">+</button>
+        </div>
+      </div>
+      <div class="stok-item" style="opacity:0.6;">
+        <div class="stok-emoji">🛍️</div>
+        <div class="stok-info">
+          <div class="stok-name">Surprise Bag Rp 35.000</div>
+          <div class="stok-price">Harga asli wajib ≥ Rp 117.000</div>
+        </div>
+        <div class="stok-counter">
+          <button class="counter-btn" onclick="changeStok('stok-d',-1)">−</button>
+          <div class="counter-val" id="stok-d">0</div>
+          <button class="counter-btn" onclick="changeStok('stok-d',1)">+</button>
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin:16px 0 10px;">Jam Pickup</div>
+      <div style="background:var(--white);border-radius:14px;padding:14px;box-shadow:var(--shadow);">
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">Atur rentang waktu pickup untuk hari ini</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="time" value="17:00" style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;">
+          <span style="color:var(--text-muted);">s/d</span>
+          <input type="time" value="19:00" style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;outline:none;">
+        </div>
+      </div>
+      <div style="height:80px;"></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="resto-nav-item" onclick="goTo('r-home');setRestoNav(this)"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="resto-nav-item active" onclick="setRestoNav(this)"><span class="nav-icon">📦</span><span class="nav-label">Stok</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-scan');setRestoNav(this)"><span class="nav-icon">📷</span><span class="nav-label">Scan</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-transaksi');setRestoNav(this)"><span class="nav-icon">🧾</span><span class="nav-label">Transaksi</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-profil');setRestoNav(this)"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- SCAN KODE -->
+  <div id="r-scan" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Scan / Input Kode</div>
+    </div>
+    <div class="scroll-content" style="padding:20px;">
+      <div class="scan-box">
+        <div style="font-size:14px;font-weight:700;">Arahkan kamera ke QR customer</div>
+        <div class="scan-viewfinder">
+          <div class="scan-line"></div>
+          <div class="scan-corner-box tl"></div>
+          <div class="scan-corner-box tr"></div>
+          <div class="scan-corner-box bl"></div>
+          <div class="scan-corner-box br"></div>
+        </div>
+        <button class="btn btn-sm btn-orange" onclick="simulateScan()">📷 Simulasi Scan QR</button>
+        <div style="margin-top:20px;font-size:13px;color:var(--text-muted);font-weight:600;">— atau masukkan kode manual —</div>
+        <div class="manual-input">
+          <input type="text" id="manual-code" placeholder="TBN-XXXX" maxlength="8">
+          <button onclick="verifyCode()">Cek</button>
+        </div>
+      </div>
+      <div style="background:var(--orange-pale);border-radius:14px;padding:14px;margin-top:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:4px;">⚠️ Peringatan</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">Hanya berikan Surprise Bag setelah QR atau kode berhasil diverifikasi. Jangan berikan bag jika kode tidak valid atau sudah digunakan.</div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="resto-nav-item" onclick="goTo('r-home');setRestoNav(this)"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-stok');setRestoNav(this)"><span class="nav-icon">📦</span><span class="nav-label">Stok</span></button>
+      <button class="resto-nav-item active"><span class="nav-icon">📷</span><span class="nav-label">Scan</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-transaksi');setRestoNav(this)"><span class="nav-icon">🧾</span><span class="nav-label">Transaksi</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-profil');setRestoNav(this)"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- TRANSAKSI RESTO -->
+  <div id="r-transaksi" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Transaksi Terakhir</div>
+    </div>
+    <div class="scroll-content" style="padding:16px 20px;">
+      <!-- Saldo mini -->
+      <div style="background:linear-gradient(135deg,var(--orange),var(--orange-light));border-radius:14px;padding:14px 16px;color:white;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:12px;opacity:0.85;">Saldo tersedia</div>
+          <div style="font-size:22px;font-weight:800;">Rp 147.750</div>
+        </div>
+        <button onclick="showTarikModal()" style="background:white;color:var(--orange);border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;">Tarik</button>
+      </div>
+
+      <div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">YASPIS</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Surprise Bag Rp 15.000 ×1</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Kode: TBN-4829 • Hari ini 17.30</div>
+          </div>
+          <div class="status-badge status-done">✓ Diambil</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--text-muted);">Pendapatan kamu</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">Rp 12.750</div>
+        </div>
+      </div>
+      <div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">Budi S.</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Surprise Bag Rp 20.000 ×1</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Kode: TBN-3317 • Hari ini 17.45</div>
+          </div>
+          <div class="status-badge status-done">✓ Diambil</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--text-muted);">Pendapatan kamu</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">Rp 17.000</div>
+        </div>
+      </div>
+      <div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">Rina W.</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Surprise Bag Rp 15.000 ×1</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Kode: TBN-5503 • Kemarin 18.10</div>
+          </div>
+          <div class="status-badge status-expired">Hangus</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--text-muted);">Pendapatan kamu</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-muted);">—</div>
+        </div>
+      </div>
+      <div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:80px;box-shadow:var(--shadow);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">Siti R.</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Surprise Bag Rp 25.000 ×1</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Kode: TBN-2201 • Kemarin 17.30</div>
+          </div>
+          <div class="status-badge status-done">✓ Diambil</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--text-muted);">Pendapatan kamu</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">Rp 21.250</div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="resto-nav-item" onclick="goTo('r-home');setRestoNav(this)"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-stok');setRestoNav(this)"><span class="nav-icon">📦</span><span class="nav-label">Stok</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-scan');setRestoNav(this)"><span class="nav-icon">📷</span><span class="nav-label">Scan</span></button>
+      <button class="resto-nav-item active"><span class="nav-icon">🧾</span><span class="nav-label">Transaksi</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-profil');setRestoNav(this)"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- PROFIL RESTO -->
+  <div id="r-profil" class="screen">
+    <div class="scroll-content">
+      <div class="resto-profile-header">
+        <div class="resto-avatar">🍛</div>
+        <div>
+          <div class="profile-name">Warung Makan Bu Khari</div>
+          <div class="profile-email">warungbukhari@email.com</div>
+          <div style="font-size:12px;margin-top:4px;opacity:0.8;">⭐ 4.8 • Bergabung Jun 2024</div>
+        </div>
+      </div>
+
+      <!-- Saldo Card -->
+      <div class="saldo-card">
+        <div class="saldo-label">Saldo Tersedia</div>
+        <div class="saldo-val">Rp 147.750</div>
+        <div class="saldo-pending">+ Rp 29.750 dalam proses (3–5 hari kerja)</div>
+        <div class="saldo-actions">
+          <button class="saldo-btn saldo-btn-primary" onclick="showTarikModal()">💸 Tarik Saldo</button>
+          <button class="saldo-btn saldo-btn-outline" onclick="showToast('Riwayat pencairan tersedia di transaksi')">📋 Riwayat</button>
+        </div>
+      </div>
+
+      <!-- Statistik -->
+      <div style="background:var(--white);border-radius:16px;margin:12px 20px 0;padding:14px;box-shadow:var(--shadow);">
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📊 Statistik Bulan Ini</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:var(--green-pale);border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:var(--green);">105</div>
+            <div style="font-size:11px;color:var(--text-muted);">Total Bag Terjual</div>
+          </div>
+          <div style="background:var(--orange-pale);border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:var(--orange);">Rp 1.8 jt</div>
+            <div style="font-size:11px;color:var(--text-muted);">Total Pendapatan</div>
+          </div>
+          <div style="background:#E8F5E9;border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:#1B5E20;">42 kg</div>
+            <div style="font-size:11px;color:var(--text-muted);">Makanan Diselamatkan</div>
+          </div>
+          <div style="background:var(--green-pale);border-radius:12px;padding:10px;text-align:center;">
+            <div style="font-size:20px;font-weight:800;color:var(--green);">⭐ 4.8</div>
+            <div style="font-size:11px;color:var(--text-muted);">Rating Rata-rata</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-menu" style="padding:16px 20px;">
+        <div class="menu-item" onclick="showToast('Fitur edit profil resto segera hadir!')">
+          <span class="menu-icon">✏️</span><span class="menu-text">Edit Profil Resto</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Jl. Teuku Umar No. 14, Banda Aceh')">
+          <span class="menu-icon">📍</span><span class="menu-text">Lokasi Resto</span>
+          <span style="font-size:12px;color:var(--text-muted);margin-right:6px;">Teuku Umar No.14</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Jam operasional: 09.00–21.00 WIB')">
+          <span class="menu-icon">🕐</span><span class="menu-text">Jam Operasional</span>
+          <span style="font-size:12px;color:var(--text-muted);margin-right:6px;">09.00–21.00</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Sertifikat Halal MUI aktif ✅')">
+          <span class="menu-icon">☪️</span><span class="menu-text">Sertifikat Halal</span>
+          <span style="font-size:11px;background:var(--green-pale);color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700;margin-right:6px;">Aktif</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Nomor rekening: BRI 1234-5678-9012')">
+          <span class="menu-icon">🏦</span><span class="menu-text">Rekening Bank</span>
+          <span style="font-size:12px;color:var(--text-muted);margin-right:6px;">BRI ••••9012</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Notifikasi pesanan aktif ✅')">
+          <span class="menu-icon">🔔</span><span class="menu-text">Notifikasi</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('Pusat bantuan mitra segera hadir!')">
+          <span class="menu-icon">❓</span><span class="menu-text">Pusat Bantuan Mitra</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="showToast('SOP & Kebijakan Tebusin untuk Mitra')">
+          <span class="menu-icon">📄</span><span class="menu-text">SOP & Kebijakan Mitra</span><span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item" onclick="doLogout()">
+          <span class="menu-icon">🚪</span><span class="menu-text" style="color:var(--danger);">Keluar</span>
+        </div>
+      </div>
+      <div style="height:20px;"></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="resto-nav-item" onclick="goTo('r-home');setRestoNav(this)"><span class="nav-icon">🏠</span><span class="nav-label">Beranda</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-stok');setRestoNav(this)"><span class="nav-icon">📦</span><span class="nav-label">Stok</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-scan');setRestoNav(this)"><span class="nav-icon">📷</span><span class="nav-label">Scan</span></button>
+      <button class="resto-nav-item" onclick="goTo('r-transaksi');setRestoNav(this)"><span class="nav-icon">🧾</span><span class="nav-label">Transaksi</span></button>
+      <button class="resto-nav-item active"><span class="nav-icon">👤</span><span class="nav-label">Profil</span></button>
+    </div>
+  </div>
+
+  <!-- TARIK SALDO MODAL -->
+  <div class="modal-overlay" id="tarik-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">💸 Tarik Saldo</div>
+      <div style="background:var(--green-pale);border-radius:12px;padding:10px 14px;margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--text-muted);">Saldo tersedia</div>
+        <div style="font-size:22px;font-weight:800;color:var(--green);">Rp 147.750</div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Nominal Penarikan</div>
+      <input type="number" id="tarik-nominal" placeholder="Masukkan nominal (min. Rp 50.000)" 
+        style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;outline:none;margin-bottom:12px;"
+        onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Pilih Rekening Tujuan</div>
+      <div class="bank-option selected" id="bank-bri" onclick="selectBank('bank-bri')">
+        <div class="bank-icon">🏦</div>
+        <div>
+          <div class="bank-name">Bank BRI</div>
+          <div class="bank-acc">1234-5678-9012 (a.n. Bu Khari)</div>
+        </div>
+      </div>
+      <div class="bank-option" id="bank-bca" onclick="selectBank('bank-bca')">
+        <div class="bank-icon">🏧</div>
+        <div>
+          <div class="bank-name">Bank BCA</div>
+          <div class="bank-acc">8765-4321-0987 (a.n. Bu Khari)</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin:8px 0 12px;">⏱ Dana masuk dalam 1–3 hari kerja. Biaya admin: Rp 2.500</div>
+      <button class="btn btn-orange" onclick="doTarik()">Konfirmasi Penarikan</button>
+      <button class="btn btn-gray" style="margin-top:8px;" onclick="closeModal('tarik-modal')">Batal</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS OVERLAY -->
+  <div class="success-overlay" id="success-overlay">
+    <div class="success-card">
+      <div class="success-icon" id="success-icon">✅</div>
+      <div class="success-title" id="success-title">Berhasil!</div>
+      <div class="success-sub" id="success-sub">Operasi berhasil dilakukan.</div>
+      <button class="success-btn" id="success-btn" onclick="closeSuccess()">OK</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ===== STATE =====
+let currentScreen = 'splash';
+let screenHistory = [];
+let selectedBagPrice = 15000;
+let selectedBagStock = 3;
+let selectedBagQty = 1;
+let currentUser = null;
+
+// Checkout state
+let voucherActive = false;
+let voucherDiscount = 0;
+let voucherLabel = '';
+let koinActive = false;
+let koinUsed = 2000;
+
+const VOUCHERS = {
+  'KAMPUS5K': { name: 'KAMPUS5K', discount: 5000, label: 'Kampus' },
+  'REF-YASPIS': { name: 'REF-YASPIS', discount: 2000, label: 'Referral' },
+};
+
+// Eco factors per bag
+const ECO_CO2_PER_BAG = 0.4;
+const ECO_FOOD_PER_BAG = 0.8;
+const ECO_WATER_PER_BAG = 120;
+
+// ===== NAVIGATION =====
+function goTo(screenId) {
+  const prev = document.querySelector('.screen.active');
+  if (prev) { prev.classList.remove('active'); screenHistory.push(prev.id); }
+  const next = document.getElementById(screenId);
+  if (next) {
+    next.classList.add('active');
+    next.scrollTop = 0;
+    const sc = next.querySelector('.scroll-content');
+    if (sc) sc.scrollTop = 0;
+    currentScreen = screenId;
+  }
+}
+function goBack() {
+  if (screenHistory.length > 0) {
+    const prev = screenHistory.pop();
+    const cur = document.querySelector('.screen.active');
+    if (cur) cur.classList.remove('active');
+    const target = document.getElementById(prev);
+    if (target) { target.classList.add('active'); currentScreen = prev; }
+  }
+}
+
+// ===== SPLASH =====
+setTimeout(() => goTo('login'), 2000);
+
+// ===== LOGIN =====
+function doLogin() {
+  const u = document.getElementById('usn-input').value.trim().toLowerCase();
+  const p = document.getElementById('pw-input').value.trim();
+  if (u === 'customer' && p === 'tebusin123') { currentUser = 'customer'; goTo('c-home'); }
+  else if (u === 'warungbukhari' && p === 'resto123') { currentUser = 'resto'; goTo('r-home'); }
+  else showToast('Username atau password salah! ❌');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && currentScreen === 'login') doLogin(); });
+
+function doLogout() {
+  currentUser = null; screenHistory = [];
+  document.getElementById('usn-input').value = '';
+  document.getElementById('pw-input').value = '';
+  goTo('login');
+}
+
+// ===== NAV =====
+function setActiveNav(activeId) {
+  ['nav-home','nav-pesanan','nav-koin','nav-profil'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  const el = document.getElementById(activeId);
+  if (el) el.classList.add('active');
+}
+function setRestoNav(btn) {
+  const navItems = btn.parentElement.querySelectorAll('.resto-nav-item');
+  navItems.forEach(n => n.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ===== LOCATION =====
+function showLocationModal() { document.getElementById('location-modal').classList.add('show'); }
+function setLocation(loc) {
+  document.getElementById('current-location').textContent = loc;
+  closeModal('location-modal');
+  showToast('📍 Lokasi diubah ke ' + loc);
+}
+
+// ===== BAG SELECTION =====
+function selectBag(el, price, ori, stock) {
+  document.querySelectorAll('.bag-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBagPrice = price;
+  selectedBagStock = stock;
+  selectedBagQty = 1;
+  document.getElementById('selected-price-display').textContent = price.toLocaleString('id-ID');
+  document.getElementById('qty-display').textContent = 1;
+  const stockEl = document.getElementById('stock-a');
+  if (stockEl) stockEl.textContent = 'Stok tersisa: ' + stock;
+  updateEcoImpact();
+}
+
+function changeQty(delta) {
+  let q = selectedBagQty + delta;
+  if (q < 1) q = 1;
+  if (q > selectedBagStock) { showToast('Stok tidak mencukupi!'); return; }
+  selectedBagQty = q;
+  document.getElementById('qty-display').textContent = q;
+  const total = selectedBagPrice * q;
+  document.getElementById('selected-price-display').textContent = total.toLocaleString('id-ID');
+  updateEcoImpact();
+}
+
+function updateEcoImpact() {
+  const q = selectedBagQty;
+  const co2 = (ECO_CO2_PER_BAG * q).toFixed(1);
+  const food = (ECO_FOOD_PER_BAG * q).toFixed(1);
+  const water = (ECO_WATER_PER_BAG * q);
+  if (document.getElementById('eco-co2')) document.getElementById('eco-co2').textContent = co2 + ' kg';
+  if (document.getElementById('eco-food')) document.getElementById('eco-food').textContent = food + ' kg';
+  if (document.getElementById('eco-water')) document.getElementById('eco-water').textContent = water + ' L';
+}
+
+// ===== CHECKOUT FLOW =====
+function goToCheckout() {
+  // Reset state
+  voucherActive = false; voucherDiscount = 0; voucherLabel = '';
+  koinActive = false; koinUsed = 2000;
+  document.getElementById('voucher-code-input').value = '';
+  document.getElementById('voucher-active-display').style.display = 'none';
+  document.getElementById('koin-toggle').classList.remove('active');
+  document.getElementById('koin-slider-row').style.display = 'none';
+  document.getElementById('sum-row-voucher').style.display = 'none';
+  document.getElementById('sum-row-koin').style.display = 'none';
+
+  updateCheckoutUI();
+  goTo('c-checkout');
+}
+
+function updateCheckoutUI() {
+  const subtotal = selectedBagPrice * selectedBagQty;
+  const service = 1000;
+  let discount = voucherActive ? voucherDiscount : 0;
+  let koinDiscount = koinActive ? koinUsed : 0;
+  const total = Math.max(0, subtotal + service - discount - koinDiscount);
+
+  document.getElementById('co-qty').textContent = selectedBagQty;
+  document.getElementById('co-subtotal').textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+  document.getElementById('co-co2').textContent = (ECO_CO2_PER_BAG * selectedBagQty).toFixed(1) + ' kg';
+  document.getElementById('co-food').textContent = (ECO_FOOD_PER_BAG * selectedBagQty).toFixed(1) + ' kg';
+  document.getElementById('sum-qty').textContent = selectedBagQty;
+  document.getElementById('sum-harga').textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+  document.getElementById('sum-total').textContent = 'Rp ' + total.toLocaleString('id-ID');
+  document.getElementById('bayar-btn-total').textContent = 'Rp ' + total.toLocaleString('id-ID');
+
+  // Koin max = min(saldo koin, total - 1000)
+  const maxKoin = Math.min(12500, subtotal + service - discount - 1000);
+  document.getElementById('koin-max-label').textContent = maxKoin.toLocaleString('id-ID');
+  document.getElementById('koin-range').max = maxKoin;
+}
+
+function applyVoucher() {
+  const code = document.getElementById('voucher-code-input').value.trim().toUpperCase();
+  if (VOUCHERS[code]) {
+    voucherActive = true;
+    voucherDiscount = VOUCHERS[code].discount;
+    voucherLabel = VOUCHERS[code].label;
+    document.getElementById('voucher-active-display').style.display = 'flex';
+    document.getElementById('voucher-name-display').textContent = code;
+    document.getElementById('sum-row-voucher').style.display = 'flex';
+    document.getElementById('sum-voucher-label').textContent = voucherLabel;
+    document.getElementById('sum-voucher-val').textContent = '− Rp ' + voucherDiscount.toLocaleString('id-ID');
+    updateCheckoutUI();
+    showToast('Voucher ' + code + ' berhasil dipakai! 🎉');
+  } else if (code.length > 0) {
+    showToast('Kode voucher tidak valid atau sudah kadaluarsa ❌');
+  }
+}
+function removeVoucher() {
+  voucherActive = false; voucherDiscount = 0; voucherLabel = '';
+  document.getElementById('voucher-active-display').style.display = 'none';
+  document.getElementById('sum-row-voucher').style.display = 'none';
+  document.getElementById('voucher-code-input').value = '';
+  updateCheckoutUI();
+}
+
+function toggleKoin() {
+  koinActive = !koinActive;
+  document.getElementById('koin-toggle').classList.toggle('active', koinActive);
+  document.getElementById('koin-slider-row').style.display = koinActive ? 'block' : 'none';
+  document.getElementById('sum-row-koin').style.display = koinActive ? 'flex' : 'none';
+  if (koinActive) {
+    document.getElementById('koin-amount-label').textContent = '−Rp ' + koinUsed.toLocaleString('id-ID');
+    document.getElementById('sum-koin-val').textContent = '− Rp ' + koinUsed.toLocaleString('id-ID');
+  } else {
+    document.getElementById('koin-amount-label').textContent = '';
+  }
+  updateCheckoutUI();
+}
+function updateKoinSlider() {
+  const val = parseInt(document.getElementById('koin-range').value);
+  koinUsed = val;
+  document.getElementById('koin-range-val').textContent = val.toLocaleString('id-ID');
+  document.getElementById('koin-rp-val').textContent = val.toLocaleString('id-ID');
+  document.getElementById('koin-amount-label').textContent = '−Rp ' + val.toLocaleString('id-ID');
+  document.getElementById('sum-koin-val').textContent = '− Rp ' + val.toLocaleString('id-ID');
+  updateCheckoutUI();
+}
+
+function doBayar() {
+  const subtotal = selectedBagPrice * selectedBagQty;
+  const service = 1000;
+  const discount = voucherActive ? voucherDiscount : 0;
+  const koinDiscount = koinActive ? koinUsed : 0;
+  const total = Math.max(0, subtotal + service - discount - koinDiscount);
+
+  document.getElementById('qr-bag-info').textContent = `Surprise Bag Rp${selectedBagPrice.toLocaleString('id-ID')} ×${selectedBagQty}`;
+  document.getElementById('qr-total-price').textContent = 'Rp ' + total.toLocaleString('id-ID');
+
+  const vRow = document.getElementById('qr-row-voucher');
+  if (voucherActive) { vRow.style.display = 'flex'; document.getElementById('qr-voucher-val').textContent = '−Rp ' + discount.toLocaleString('id-ID'); }
+  else vRow.style.display = 'none';
+
+  const kRow = document.getElementById('qr-row-koin');
+  if (koinActive) { kRow.style.display = 'flex'; document.getElementById('qr-koin-val').textContent = '−Rp ' + koinDiscount.toLocaleString('id-ID'); }
+  else kRow.style.display = 'none';
+
+  showSuccess('🛍️', 'Pembayaran Berhasil!',
+    `Total: Rp ${total.toLocaleString('id-ID')}\nTunjukkan QR ke resto saat pickup 17.00–19.00 WIB`,
+    () => goTo('c-qr')
+  );
+}
+
+// ===== RATING =====
+function setStar(n) {
+  document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('active', i < n));
+}
+let photoAdded = false;
+function togglePhoto() {
+  photoAdded = !photoAdded;
+  document.getElementById('photo-preview').style.display = photoAdded ? 'block' : 'none';
+  document.getElementById('upload-icon').textContent = photoAdded ? '✅' : '📷';
+  document.getElementById('upload-text').textContent = photoAdded ? 'Foto ditambahkan!' : 'Tambah Foto (opsional)';
+  document.getElementById('coin-reward-info').textContent = photoAdded ? '📷 Review dengan foto = +30 Koin Tebusin' : '📝 Review teks = +10 Koin Tebusin';
+}
+function submitRating() {
+  const coins = photoAdded ? 30 : 10;
+  photoAdded = false;
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('upload-icon').textContent = '📷';
+  document.getElementById('upload-text').textContent = 'Tambah Foto (opsional)';
+  document.getElementById('coin-reward-info').textContent = '📝 Review teks = +10 Koin Tebusin';
+  document.getElementById('review-text').value = '';
+  showSuccess('🪙', 'Ulasan Terkirim!', `+${coins} Koin Tebusin berhasil ditambahkan. Terima kasih sudah berbagi pengalaman!`, () => goTo('c-home'));
+}
+
+// ===== STOK =====
+function changeStok(id, delta) {
+  const el = document.getElementById(id);
+  let val = parseInt(el.textContent) + delta;
+  if (val < 0) val = 0;
+  if (val > 20) val = 20;
+  el.textContent = val;
+}
+
+// ===== SCAN =====
+function simulateScan() {
+  showSuccess('✅', 'QR Valid!', 'Pesanan YASPIS — Surprise Bag Rp 15.000 ×1\nKode: TBN-4829\nSilakan berikan Surprise Bag.', () => {});
+}
+function verifyCode() {
+  const code = document.getElementById('manual-code').value.trim().toUpperCase();
+  if (code === 'TBN-4829' || code === 'TBN4829') {
+    showSuccess('✅', 'Kode Valid!', 'Pesanan YASPIS — Surprise Bag Rp 15.000 ×1\nSilakan berikan Surprise Bag kepada customer.', () => { document.getElementById('manual-code').value = ''; });
+  } else if (code.length >= 4) {
+    showSuccess('❌', 'Kode Tidak Valid', 'Kode tidak ditemukan atau sudah digunakan. Minta customer tunjukkan QR atau cek kembali kodenya.', () => {});
+  } else {
+    showToast('Masukkan kode minimal 4 karakter');
+  }
+}
+
+// ===== TARIK SALDO =====
+function showTarikModal() { document.getElementById('tarik-modal').classList.add('show'); }
+function selectBank(id) {
+  ['bank-bri','bank-bca'].forEach(b => document.getElementById(b).classList.remove('selected'));
+  document.getElementById(id).classList.add('selected');
+}
+function doTarik() {
+  const nominal = parseInt(document.getElementById('tarik-nominal').value);
+  if (!nominal || nominal < 50000) { showToast('Minimal penarikan Rp 50.000'); return; }
+  if (nominal > 147750) { showToast('Saldo tidak mencukupi'); return; }
+  closeModal('tarik-modal');
+  showSuccess('💸', 'Permintaan Diterima!', `Penarikan Rp ${nominal.toLocaleString('id-ID')} akan diproses dalam 1–3 hari kerja.`, () => {});
+}
+
+// ===== MODAL =====
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ===== SUCCESS OVERLAY =====
+function showSuccess(icon, title, sub, cb) {
+  document.getElementById('success-icon').textContent = icon;
+  document.getElementById('success-title').textContent = title;
+  document.getElementById('success-sub').textContent = sub;
+  document.getElementById('success-overlay').classList.add('show');
+  document.getElementById('success-btn').onclick = function() { closeSuccess(); if (cb) cb(); };
+}
+function closeSuccess() { document.getElementById('success-overlay').classList.remove('show'); }
+
+// ===== TOAST =====
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ===== SEARCH (simple filter) =====
+function filterResto() { /* visual only in prototype */ }
+function filterChip(el, cat) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  showToast(cat === 'Semua' ? 'Menampilkan semua kategori' : 'Filter: ' + cat);
+}
+</script>
+</body>
+</html>
