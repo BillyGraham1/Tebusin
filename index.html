@@ -206,6 +206,15 @@
   .resto-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
   .bag-tag { background: var(--green-pale); color: var(--green); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
   .pickup-tag { font-size: 11px; color: var(--text-muted); }
+  .resto-img img,
+.detail-hero img,
+.avatar img,
+.resto-avatar img,
+.lb-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
   /* ===== DETAIL RESTO ===== */
   .detail-hero { width: 100%; height: 200px; background: linear-gradient(135deg, #e8f5e9, #fff3e0); display: flex; align-items: center; justify-content: center; font-size: 80px; flex-shrink: 0; }
@@ -632,7 +641,7 @@
           </div>
         </div>
         <div class="resto-card" onclick="showToast('Stok habis saat ini 😢')">
-          <div class="resto-img">☕</div>
+          <div class="resto-img"><img src="kopken.png" alt="Kopi Kenangan Senja"></div>
           <div class="resto-info">
             <div class="resto-name">Kopi Kenangan Senja</div>
             <div class="resto-meta">
@@ -651,7 +660,7 @@
           </div>
         </div>
         <div class="resto-card" onclick="showToast('Fitur detail tersedia untuk demo di PAGI SORE 😊')">
-          <div class="resto-img">🍜</div>
+          <div class="resto-img"><img src="bakso.png" alt="Bakso Malang Pak Diran"></div>
           <div class="resto-info">
             <div class="resto-name">Bakso Malang Pak Diran</div>
             <div class="resto-meta">
@@ -715,7 +724,7 @@
   <!-- DETAIL RESTO -->
   <div id="c-detail" class="screen">
     <div class="scroll-content">
-      <div class="detail-hero">🍛</div>
+      <div class="detail-hero"><img src="NASPAD-pagi-sore.jpg" alt="PAGI SORE"></div>
       <div style="position:relative;">
         <button class="topbar-back" style="position:absolute;top:12px;left:12px;z-index:10;" onclick="goBack()">←</button>
       </div>
@@ -1530,7 +1539,7 @@
   <div id="r-profil" class="screen">
     <div class="scroll-content">
       <div class="resto-profile-header">
-        <div class="resto-img">🍛</div>
+        <div class="resto-avatar"><img src="pagi-sore-logo.jpg" alt="PAGI SORE"></div>
         <div>
           <div class="profile-name">PAGI SORE</div>
           <div class="profile-email">pagisore@email.com</div>
